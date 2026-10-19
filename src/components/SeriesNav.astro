@@ -1,7 +1,8 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { postUrl, url } from '../lib/url';
-import { getSeries } from '../data/series';
+import { getSeries, upcoming } from '../data/series';
+import NextEpisode from './NextEpisode.astro';
 
 interface Props {
   current: CollectionEntry<'posts'>;
@@ -13,6 +14,7 @@ const episodes = all.filter((p) => p.data.series === current.data.series).sort((
 const i = episodes.findIndex((p) => p.id === current.id);
 const prev = episodes[i - 1];
 const next = episodes[i + 1];
+const soon = !next ? upcoming(series, episodes.map((p) => p.data.episode)) : undefined;
 ---
 
 <nav class="series-nav" aria-label="Series navigation">
@@ -20,7 +22,7 @@ const next = episodes[i + 1];
     <a href={url(`/series/${series.id}/`)}>Series {series.number}: {series.title}</a>
   </p>
   {
-    (prev || next) && (
+    (prev || next || soon) && (
       <div class="pn">
         {prev ? (
           <a class="card link" href={postUrl(prev.id)} rel="prev">
@@ -35,6 +37,8 @@ const next = episodes[i + 1];
             <span class="muted small">Episode {next.data.episode} →</span>
             <span class="t">{next.data.title}</span>
           </a>
+        ) : soon ? (
+          <NextEpisode next={soon} compact />
         ) : (
           <span />
         )}

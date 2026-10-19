@@ -2,6 +2,7 @@
 title: "Same 64 layers. Same kernels. Two completely different jobs for the GPU."
 description: "Prefill vs decode on an H100, measured: 512 prompt tokens in 54 ms at 46% of peak compute, then 20.6 ms per token at 74% of peak memory bandwidth. Why one is compute-bound and the other memory-bound."
 series: "llm-inference-gpu"
+draft: true
 date: 2026-10-19
 tags: ["LLMInference","GPU","CUDA","vLLM","NVIDIA"]
 media:
@@ -91,7 +92,7 @@ The roofline in the step-by-step view places the whole decode step. Here is the 
 
 <Reproduce post={frontmatter} />
 
-<Sources>
+<Sources post={frontmatter}>
 
 - Measured with `vllm bench latency` (vLLM 0.31, default settings), Qwen3.8-27B BF16, batch 1, 512 input tokens, 5 iterations each, on 1x H100 SXM 80GB (GCP a3-highgpu-1g). Sillybench run [`2026-10-09_qwen3.8-27b_bf16_initial`](https://github.com/tgarg01/Sillybench/tree/main/runs/2026-10-09_qwen3.8-27b_bf16_initial), bench/lat_b1_in512_out1.json (prefill = 54.33 ms avg) and lat_b1_in512_out128.json (2,664 ms). Decode per token = (2,664 - 54.3) / 127 = 20.55 ms. Reproduced within 0.1% on a fresh VM (2026-10-13 run).
 - Prefill time is end-to-end (includes \~9 ms of host/scheduling time); GPU-only prefill from Nsight Systems is 45.0 ms, which would make prefill 56% of peak.

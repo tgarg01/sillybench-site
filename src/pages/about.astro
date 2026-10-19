@@ -7,10 +7,10 @@ import { url } from '../lib/url';
 const timeline = [
   {
     when: 'Oct 2026 – now',
-    what: 'Independent research: LLM inference profiling on an H100',
+    what: 'Independent research: LLM inference profiling on 1x NVIDIA H100 GPU',
     where: 'SillyBench',
     points: [
-      'Profiling vLLM serving Qwen3.8-27B (hybrid Gated DeltaNet + full attention) on one H100 with Nsight Systems and Nsight Compute, from scheduling and host overhead down to individual kernels.',
+      'Profiling vLLM serving Qwen3.8-27B (hybrid Gated DeltaNet + full attention) on 1x NVIDIA H100 GPU with Nsight Systems and Nsight Compute, from scheduling and host overhead down to individual kernels.',
       'Built a predict → measure → explain harness: Spot-VM orchestration, NVTX-ranged runs, sha256-verified artifacts. A fresh-VM re-run matched decode latency within 0.6% at all six batch sizes.',
       'The findings become Series 1 on this site.',
     ],
@@ -69,7 +69,7 @@ const skills = [
 
 <Base
   title="About"
-  description={`${SITE.author}: GPU performance architect. Four years modeling AI performance on Intel GPUs, IIT Hyderabad CSE, now profiling LLM inference on NVIDIA H100s.`}
+  description={`${SITE.author}: GPU performance architect. Four years modeling AI performance on Intel GPUs, IIT Hyderabad CSE, now profiling LLM inference on 1x NVIDIA H100 GPU.`}
 >
   <article class="wrap-narrow page">
     <p class="kicker">About</p>

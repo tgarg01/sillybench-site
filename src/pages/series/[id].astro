@@ -2,7 +2,8 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import NewsletterForm from '../../components/NewsletterForm.astro';
-import { SERIES, type Series } from '../../data/series';
+import { SERIES, upcoming, type Series } from '../../data/series';
+import NextEpisode from '../../components/NextEpisode.astro';
 import { mediaUrl, postUrl, formatDate } from '../../lib/url';
 
 export function getStaticPaths() {
@@ -16,6 +17,7 @@ const episodes = (await getCollection('posts', (p) => !p.data.draft && p.data.se
   (a, b) => a.data.episode - b.data.episode,
 );
 const repoName = series.repo.replace('https://github.com/', '');
+const soon = upcoming(series, episodes.map((p) => p.data.episode));
 ---
 
 <Base title={`Series ${series.number}: ${series.title}`} description={series.blurb}>
@@ -50,6 +52,7 @@ const repoName = series.repo.replace('https://github.com/', '');
   </ol>
 
   <div class="wrap-narrow">
+    {soon && <NextEpisode next={soon} />}
     <p class="muted note">New episodes are added as the measurements come in.</p>
     <NewsletterForm />
   </div>

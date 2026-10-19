@@ -17,6 +17,8 @@
 //   --slug <s>          URL slug after the number (default: from the title)
 //   --date <YYYY-MM-DD> publish date (default: today; new posts only)
 //   --ref <git ref>     repo tag/branch/SHA to link and to take the notebook from (default: tag post-NN if it exists)
+//   --local <dir>       preview: take the notebook from a local checkout (uncommitted files too) instead of GitHub;
+//                       links still point at --ref, so don't publish until it's pushed and tagged
 //   --python <path>     Python with jupyter to run the notebook (default: <Posts>/Sillybench/.venv-posts/bin/python)
 //   --no-execute        show the notebook as committed (no outputs) instead of running it
 //   --figure <file>     copy a figure into public/media/post-NN/figures/ (repeatable), for a "Go deeper" section
@@ -57,6 +59,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === '--ref') opts.ref = argv[++i];
   else if (a === '--series') opts.series = argv[++i];
   else if (a === '--python') opts.python = argv[++i];
+  else if (a === '--local') opts.local = path.resolve(argv[++i].replace(/^~(?=\/)/, os.homedir()));
   else if (a === '--no-execute') opts.noExecute = true;
   else if (a === '--narrated') opts.narrated = true;
   else if (a === '--figure') opts.figures.push(argv[++i]);
@@ -141,8 +144,14 @@ log(`series ${SERIES.number}, episode ${episode}, repo ${SERIES.repo} @ ${ref}`)
 // ---------- notebook: clone the repo at the ref, find posts/post-NN/*.ipynb, run it ----------
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aionsilicon-'));
 const clone = path.join(tmp, 'repo');
-const cl = spawnSync('git', ['clone', '--quiet', '--depth', '1', '--branch', ref, `${SERIES.repo}.git`, clone], { encoding: 'utf8' });
-if (cl.status !== 0) die(`could not clone ${SERIES.repo} at ${ref}: ${cl.stderr}`);
+if (opts.local) {
+  // Copy the working tree (minus .git and virtualenvs) so uncommitted notebooks can be previewed.
+  fs.cpSync(opts.local, clone, { recursive: true, filter: (p) => !/\/(\.git|\.venv[^/]*|node_modules)(\/|$)/.test(p.slice(opts.local.length)) });
+  warn(`using local checkout ${opts.local} (preview only)`);
+} else {
+  const cl = spawnSync('git', ['clone', '--quiet', '--depth', '1', '--branch', ref, `${SERIES.repo}.git`, clone], { encoding: 'utf8' });
+  if (cl.status !== 0) die(`could not clone ${SERIES.repo} at ${ref}: ${cl.stderr}`);
+}
 const nbDirRel = `posts/${name}`;
 const nbFile = fs.existsSync(path.join(clone, nbDirRel))
   ? fs.readdirSync(path.join(clone, nbDirRel)).find((f) => f.endsWith('.ipynb'))
@@ -282,9 +291,15 @@ if (notebookOut) {
 } else fs.rmSync(path.join(mediaDir, 'notebook.ipynb'), { force: true });
 fs.rmSync(tmp, { recursive: true, force: true });
 
-// Social card
+// Social card: use the site title if the episode page exists (it may have been edited)
+const existingForOg = fs.readdirSync(path.join(ROOT, 'src', 'content', 'posts')).find((d) => d.startsWith(`${nn}-`));
+let ogTitle = title;
+if (existingForOg) {
+  const fmText = fs.readFileSync(path.join(ROOT, 'src', 'content', 'posts', existingForOg, 'index.mdx'), 'utf8').match(/^---\n([\s\S]*?)\n---/);
+  if (fmText) ogTitle = yamlLib.load(fmText[1]).title ?? title;
+}
 await makeOg({
-  title,
+  title: ogTitle,
   kicker: `SERIES ${SERIES.number} · EPISODE ${episode}`,
   footer: `AI on Silicon · ${SERIES.title}`,
   image: pngs.length ? path.join(stillsSrc, pngs[cardIdx]) : path.join(mediaDir, 'loop-poster.webp'),
@@ -351,7 +366,7 @@ ${goDeeper()}
 
 <Reproduce post={frontmatter} />
 
-<Sources>
+<Sources post={frontmatter}>
 
 ${sources.map((s) => `- ${linkRuns(esc(s))}`).join('\n')}
 

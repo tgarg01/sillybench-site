@@ -44,11 +44,12 @@ const commands = r?.notebook
 {
   r && (
     <section class="repro" aria-labelledby="repro-h">
-      <h2 id="repro-h">Reproduce it</h2>
+      <h2 id="repro-h">{r.view ? 'Sources & methodology' : 'Reproduce it'}</h2>
       {r.notebook ? (
         <p>
-          Every number in this episode comes out of this notebook. <strong>No GPU?</strong> It reads the stored H100
-          results and runs on any laptop or in Colab. With an NVIDIA GPU and vLLM it measures them on yours.
+          Every number in this episode comes out of this notebook, together with the code that produces it.{' '}
+          <strong>No GPU?</strong> It reads the stored 1x NVIDIA H100 GPU results and runs on any laptop or in Colab.
+          With an NVIDIA GPU it measures them on yours.
         </p>
       ) : (
         <p>{r.note ?? 'The notebook for this episode is coming soon.'}</p>

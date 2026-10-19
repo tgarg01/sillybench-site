@@ -33,6 +33,12 @@ Astro 7 + MDX, deployed to GitHub Pages. No server and no database.
 frontmatter it owns (`episode`, `media`, `repro`) and keeps your text. `--force` rewrites the whole MDX instead.
 `node scripts/import-post.mjs` with no arguments lists every option (`--narrated` adds a Narrated tab later).
 
+**Preview a notebook before pushing it:** add `--local ~/Posts/Sillybench` to use your local checkout. Links still
+point at the tag, so re-import without `--local` once it's pushed and tagged, before you deploy.
+
+**Announce the next episode:** set `next` (`episode`, `title`, `date`) for the series in `src/data/series.json`. It
+shows on the home page, the series page and the latest episode until that episode is published.
+
 **A new series:** add it to `src/data/series.json` with its own repo, then import with `--series <id>`.
 
 ## Layout

@@ -52,6 +52,7 @@ async function renderOutput(o: Output): Promise<string> {
     return `<pre class="nb-stream err">${esc(`${o.ename}: ${o.evalue}`)}</pre>`;
   }
   const d = o.data ?? {};
+  if (d['application/vnd.jupyter.widget-view+json']) return ''; // progress bars and other live widgets
   if (d['image/png']) return `<img class="nb-img" alt="Notebook output figure" src="data:image/png;base64,${join(d['image/png']).trim()}" />`;
   if (d['image/jpeg']) return `<img class="nb-img" alt="Notebook output figure" src="data:image/jpeg;base64,${join(d['image/jpeg']).trim()}" />`;
   if (d['text/html']) return `<div class="nb-html">${sanitize(join(d['text/html']))}</div>`;

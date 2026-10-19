@@ -1,0 +1,46 @@
+---
+// "Next episode" teaser card, from the series' `next` entry in series.json.
+import { releaseDay, type NextEpisode } from '../data/series';
+
+interface Props {
+  next: NextEpisode;
+  compact?: boolean;
+}
+const { next, compact } = Astro.props;
+---
+
+<div class:list={['next card', { compact }]}>
+  <p class="kicker">Next episode · {releaseDay(next.date)}</p>
+  <p class="t hand">Episode {next.episode}: {next.title}</p>
+  {!compact && <p class="muted small">Out on {releaseDay(next.date)}. Follow along on LinkedIn or RSS.</p>}
+</div>
+
+<style>
+  .next {
+    padding: 1.25rem;
+    border-style: dashed;
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+  .compact {
+    padding: 0.85rem 1rem;
+  }
+  p {
+    margin: 0;
+  }
+  .t {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .compact .t {
+    font-size: 1.1rem;
+  }
+  .small {
+    font-size: 0.88rem;
+  }
+</style>

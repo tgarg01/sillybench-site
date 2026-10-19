@@ -5,13 +5,17 @@ import PostCard from '../components/PostCard.astro';
 import NewsletterForm from '../components/NewsletterForm.astro';
 import { url, mediaUrl, postUrl } from '../lib/url';
 import { SITE } from '../site.config';
-import { SERIES } from '../data/series';
+import { SERIES, upcoming } from '../data/series';
+import NextEpisode from '../components/NextEpisode.astro';
 
 const all = await getCollection('posts', (p) => !p.data.draft);
 const latest = [...all].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf() || b.data.episode - a.data.episode)[0];
 const shelves = [...SERIES]
   .sort((a, b) => b.number - a.number)
-  .map((s) => ({ s, eps: all.filter((p) => p.data.series === s.id).sort((a, b) => b.data.episode - a.data.episode) }))
+  .map((s) => {
+    const eps = all.filter((p) => p.data.series === s.id).sort((a, b) => b.data.episode - a.data.episode);
+    return { s, eps, soon: upcoming(s, eps.map((p) => p.data.episode)) };
+  })
   .filter((x) => x.eps.length);
 ---
 
@@ -70,7 +74,7 @@ const shelves = [...SERIES]
   </section>
 
   {
-    shelves.map(({ s, eps }) => (
+    shelves.map(({ s, eps, soon }) => (
       <section class="wrap series">
         <div class="series-head">
           <div>
@@ -85,6 +89,7 @@ const shelves = [...SERIES]
           {eps.map((p) => (
             <PostCard post={p} />
           ))}
+          {soon && <NextEpisode next={soon} />}
         </div>
       </section>
     ))

@@ -1,15 +1,26 @@
 ---
-// "Sources & methodology": the post's Sources footer, verbatim. Wrap a markdown list in MDX:
-// <Sources>
+// "Sources & methodology": the post's Sources footer. Once an episode has a notebook (repro.view), the notebook
+// section takes over this role and this block is not shown. Wrap a markdown list in MDX:
+// <Sources post={frontmatter}>
 // - ...
 // </Sources>
+interface Props {
+  post?: { repro?: { view?: string } };
+}
+const replaced = Boolean(Astro.props.post?.repro?.view);
 ---
 
-<section class="sources" aria-labelledby="sources-h">
-  <h2 id="sources-h">Sources &amp; methodology</h2>
-  <p class="muted lead">Where every number in this post comes from: my own runs, the model’s config, or NVIDIA’s datasheet.</p>
-  <div class="list"><slot /></div>
-</section>
+{
+  !replaced && (
+    <section class="sources" aria-labelledby="sources-h">
+      <h2 id="sources-h">Sources &amp; methodology</h2>
+      <p class="muted lead">Where every number in this episode comes from: my own runs, the model’s config, or NVIDIA’s datasheet.</p>
+      <div class="list">
+        <slot />
+      </div>
+    </section>
+  )
+}
 
 <style>
   .sources {
