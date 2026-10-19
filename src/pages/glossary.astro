@@ -5,7 +5,8 @@ import { GLOSSARY } from '../data/glossary';
 import { postUrl } from '../lib/url';
 
 const posts = await getCollection('posts', (p) => !p.data.draft);
-const byPart = new Map(posts.map((p) => [p.data.part, p]));
+// Glossary terms belong to series 1 for now.
+const byEpisode = new Map(posts.filter((p) => p.data.series === 'llm-inference-gpu').map((p) => [p.data.episode, p]));
 const terms = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term));
 ---
 
@@ -21,7 +22,7 @@ const terms = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term));
   <dl class="wrap-narrow terms">
     {
       terms.map((t) => {
-        const p = t.part ? byPart.get(t.part) : undefined;
+        const p = t.episode ? byEpisode.get(t.episode) : undefined;
         return (
           <div id={t.id} class="term">
             <dt>{t.term}</dt>
@@ -30,7 +31,7 @@ const terms = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term));
               {p && (
                 <>
                   {' '}
-                  <a class="intro" href={postUrl(p.id)}>Introduced in part {p.data.part}</a>
+                  <a class="intro" href={postUrl(p.id)}>Introduced in episode {p.data.episode}</a>
                 </>
               )}
             </dd>

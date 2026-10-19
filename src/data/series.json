@@ -1,0 +1,9 @@
+[
+  {
+    "id": "llm-inference-gpu",
+    "number": 1,
+    "title": "LLM inference through the lens of a GPU",
+    "blurb": "One model (Qwen3.8-27B, BF16), one engine (vLLM 0.31), one H100. Each episode explains one idea with a number I measured, the source file it came from, and a Jupyter notebook that reproduces it.",
+    "repo": "https://github.com/tgarg01/Sillybench"
+  }
+]

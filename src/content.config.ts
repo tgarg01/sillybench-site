@@ -10,7 +10,7 @@ const posts = defineCollection({
     title: z.string(),
     description: z.string(),
     series: z.string().default('llm-inference-gpu'),
-    part: z.number().int().positive(),
+    episode: z.number().int().positive(),
     date: z.coerce.date(),
     updated: z.coerce.date().optional(),
     draft: z.boolean().default(false),
@@ -25,6 +25,7 @@ const posts = defineCollection({
         height: z.number(),
         seconds: z.number(),
       }),
+      // Optional: a narrated video adds a third tab to the hero (import with --narrated).
       narrated: z
         .object({ mp4: z.string(), vtt: z.string().optional(), poster: z.string(), seconds: z.number() })
         .optional(),
@@ -47,9 +48,12 @@ const posts = defineCollection({
         repo: z.string().url(),
         ref: z.string(),
         path: z.string().optional(),
-        notebook: z.string().optional(),
+        notebook: z.string().optional(), // path of the episode's notebook in the repo
         colab: z.boolean().default(false),
-        note: z.string().optional(),
+        // A copy of the notebook (with outputs) shown read-only on the page, relative to media.dir.
+        view: z.string().optional(),
+        viewNote: z.string().optional(), // e.g. "Outputs from a stored-mode run on 2026-10-19"
+        note: z.string().optional(), // shown when there is no notebook yet
       })
       .optional(),
   }),

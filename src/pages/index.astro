@@ -3,14 +3,16 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import PostCard from '../components/PostCard.astro';
 import NewsletterForm from '../components/NewsletterForm.astro';
-import { SITE } from '../site.config';
 import { url, mediaUrl, postUrl } from '../lib/url';
-import { SERIES, PLAN, TOTAL_PARTS } from '../data/series';
+import { SITE } from '../site.config';
+import { SERIES } from '../data/series';
 
-const posts = (await getCollection('posts', (p) => !p.data.draft)).sort((a, b) => b.data.part - a.data.part);
-const latest = posts[0];
-const published = new Set(posts.map((p) => p.data.part));
-const next = PLAN.find((p) => !published.has(p.part));
+const all = await getCollection('posts', (p) => !p.data.draft);
+const latest = [...all].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf() || b.data.episode - a.data.episode)[0];
+const shelves = [...SERIES]
+  .sort((a, b) => b.number - a.number)
+  .map((s) => ({ s, eps: all.filter((p) => p.data.series === s.id).sort((a, b) => b.data.episode - a.data.episode) }))
+  .filter((x) => x.eps.length);
 ---
 
 <Base>
@@ -19,18 +21,18 @@ const next = PLAN.find((p) => !published.has(p.part));
       <p class="kicker">{SITE.name}</p>
       <h1>LLM inference, <span class="hl">measured</span> on real GPUs.</h1>
       <p class="lede">
-        I take one model, one inference engine and one H100, and explain what the GPU is actually doing, one idea per
-        post. Every number is my own measurement, every claim names its source file, and every post links a notebook that
-        reproduces it.
+        I take a real model, a real inference engine and a real GPU, and explain what the hardware is actually doing, one
+        idea per episode. Every number is my own measurement, every claim names its source, and every episode comes with a
+        Jupyter notebook that reproduces it.
       </p>
       <div class="cta">
-        <a class="btn" href={url(`/series/${SERIES.id}/`)}>Start the series</a>
-        {latest && <a class="btn ghost" href={postUrl(latest.id)}>Latest: Part {latest.data.part}</a>}
+        {shelves[0] && <a class="btn" href={url(`/series/${shelves[0].s.id}/`)}>Start Series {shelves[0].s.number}</a>}
+        {latest && <a class="btn ghost" href={postUrl(latest.id)}>Latest: Episode {latest.data.episode}</a>}
       </div>
     </div>
     {
       latest && (
-        <a class="hero-media card" href={postUrl(latest.id)} aria-label={`Watch part ${latest.data.part}: ${latest.data.title}`}>
+        <a class="hero-media card" href={postUrl(latest.id)} aria-label={`Watch episode ${latest.data.episode}: ${latest.data.title}`}>
           <video
             autoplay
             muted
@@ -53,44 +55,40 @@ const next = PLAN.find((p) => !published.has(p.part));
     <div class="pillar">
       <span class="n hand">1</span>
       <h2 class="h3">Measured</h2>
-      <p>Qwen3.8-27B on vLLM, profiled on an H100 with Nsight Systems and Nsight Compute. No borrowed benchmarks.</p>
+      <p>Real models on real inference engines, profiled on real GPUs with tools like Nsight Systems and Nsight Compute. No borrowed benchmarks.</p>
     </div>
     <div class="pillar">
       <span class="n hand">2</span>
       <h2 class="h3">Sourced</h2>
-      <p>Each post ends with where every number comes from: the run, the file, the formula, the datasheet.</p>
+      <p>Each episode ends with where every number comes from: the run, the file, the formula, the datasheet.</p>
     </div>
     <div class="pillar">
       <span class="n hand">3</span>
       <h2 class="h3">Reproducible</h2>
-      <p>
-        The <a href={SITE.labsRepo}>Sillybench</a> notebooks print each post’s numbers on any laptop, or re-measure them on
-        your GPU. A full re-run on a fresh machine landed within 0.6%.
-      </p>
+      <p>Every episode links a Jupyter notebook that prints its numbers on any laptop or in Colab, or re-measures them on your GPU.</p>
     </div>
   </section>
 
-  <section class="wrap series">
-    <div class="series-head">
-      <div>
-        <p class="kicker">Season 1 · {posts.length} of {TOTAL_PARTS} parts out</p>
-        <h2>{SERIES.title}</h2>
-      </div>
-      <a href={url(`/series/${SERIES.id}/`)}>Full roadmap →</a>
-    </div>
-    <div class="grid">
-      {posts.map((p) => <PostCard post={p} />)}
-      {
-        next && (
-          <div class="soon card">
-            <p class="kicker">Coming next · Part {next.part}</p>
-            <p class="hand t">{next.title}</p>
-            <p class="muted">{next.concept}</p>
+  {
+    shelves.map(({ s, eps }) => (
+      <section class="wrap series">
+        <div class="series-head">
+          <div>
+            <p class="kicker">
+              Series {s.number} · {eps.length} {eps.length === 1 ? 'episode' : 'episodes'}
+            </p>
+            <h2>{s.title}</h2>
           </div>
-        )
-      }
-    </div>
-  </section>
+          <a href={url(`/series/${s.id}/`)}>All episodes →</a>
+        </div>
+        <div class="grid">
+          {eps.map((p) => (
+            <PostCard post={p} />
+          ))}
+        </div>
+      </section>
+    ))
+  }
 
   <div class="wrap-narrow">
     <NewsletterForm />
@@ -182,21 +180,6 @@ const next = PLAN.find((p) => !published.has(p.part));
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
     gap: 1.25rem;
-  }
-  .soon {
-    padding: 1.25rem;
-    border-style: dashed;
-    background: transparent;
-    box-shadow: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .soon .t {
-    font-size: 1.35rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin: 0.4rem 0;
   }
   @media (max-width: 820px) {
     .hero {

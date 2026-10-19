@@ -7,7 +7,7 @@ import NewsletterForm from '../../components/NewsletterForm.astro';
 import Comments from '../../components/Comments.astro';
 import { SITE } from '../../site.config';
 import { formatDate, mediaUrl, url } from '../../lib/url';
-import { SERIES, TOTAL_PARTS } from '../../data/series';
+import { getSeries } from '../../data/series';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', (p) => import.meta.env.DEV || !p.data.draft);
@@ -21,6 +21,7 @@ interface Props {
 const { post, all } = Astro.props;
 const d = post.data;
 const { Content } = await render(post);
+const series = getSeries(d.series);
 const og = mediaUrl(d.media.dir, d.media.og);
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -31,7 +32,7 @@ const jsonLd = {
   dateModified: (d.updated ?? d.date).toISOString(),
   author: { '@type': 'Person', name: SITE.author, url: new URL(url('/about/'), Astro.site).href },
   image: new URL(og, Astro.site).href,
-  isPartOf: { '@type': 'CreativeWorkSeries', name: SERIES.title },
+  isPartOf: { '@type': 'CreativeWorkSeries', name: `Series ${series.number}: ${series.title}` },
 };
 ---
 
@@ -40,8 +41,8 @@ const jsonLd = {
   <article class="post">
     <header class="wrap-narrow post-head">
       <p class="meta">
-        <a class="chip green" href={url(`/series/${SERIES.id}/`)}>Part {d.part} of {TOTAL_PARTS}</a>
-        <span class="muted">{SERIES.title}</span>
+        <a class="chip green" href={url(`/series/${series.id}/`)}>Series {series.number} · Episode {d.episode}</a>
+        <a class="muted series-link" href={url(`/series/${series.id}/`)}>{series.title}</a>
       </p>
       <h1>{d.title}</h1>
       <p class="muted byline">
@@ -86,8 +87,12 @@ const jsonLd = {
     margin-bottom: 0.9rem;
     font-size: 0.9rem;
   }
-  .meta a.chip {
+  .meta a.chip,
+  .series-link {
     text-decoration: none;
+  }
+  .series-link:hover {
+    color: var(--ink);
   }
   .byline {
     margin: 0.9rem 0 0;

@@ -3,39 +3,132 @@ import Base from '../layouts/Base.astro';
 import NewsletterForm from '../components/NewsletterForm.astro';
 import { SITE } from '../site.config';
 import { url } from '../lib/url';
+
+const timeline = [
+  {
+    when: 'Oct 2026 – now',
+    what: 'Independent research: LLM inference profiling on an H100',
+    where: 'SillyBench',
+    points: [
+      'Profiling vLLM serving Qwen3.8-27B (hybrid Gated DeltaNet + full attention) on one H100 with Nsight Systems and Nsight Compute, from scheduling and host overhead down to individual kernels.',
+      'Built a predict → measure → explain harness: Spot-VM orchestration, NVTX-ranged runs, sha256-verified artifacts. A fresh-VM re-run matched decode latency within 0.6% at all six batch sizes.',
+      'The findings become Series 1 on this site.',
+    ],
+  },
+  {
+    when: '2022 – 2026',
+    what: 'GPU Performance Architect (AI)',
+    where: 'Intel',
+    points: [
+      'Built analytical AI performance models for Intel’s pre-silicon Xe GPUs, from single kernels up to end-to-end workloads, and correlated them against Intel’s internal GPU profiler.',
+      'Worked with product architects on mapping workloads to hardware: Xe-core counts, cache and memory hierarchy, matrix-engine dimensions and execution width. Modeled FlashAttention tiling to see how it loads the memory hierarchy.',
+      'Analyzed bottlenecks across Transformers, MLA, ResNet and Stable Diffusion. Built an analysis pipeline that cut a two-day job to two hours and was adopted by 10–12 engineers. Mentored two graduate interns.',
+    ],
+  },
+  {
+    when: '2021 – 2022',
+    what: 'AI Research Intern',
+    where: 'Mercedes-Benz R&D',
+    points: [
+      'Deep-learning lane-marking detection for driver assistance, under automotive accuracy and compute limits. Two IEEE conference papers (INSITA 2022, ICPRS 2022).',
+    ],
+  },
+  {
+    when: '2020 – 2022',
+    what: 'M.Tech, Computer Science & Engineering',
+    where: 'IIT Hyderabad',
+    points: ['GPA 9.0/10. Led the student AI research team at TiHAN, IIT Hyderabad’s autonomous-navigation hub.'],
+  },
+  {
+    when: '2014 – 2018',
+    what: 'B.Tech, Computer Science',
+    where: 'Dr. A.P.J. Abdul Kalam Technical University',
+    points: [],
+  },
+];
+
+const skills = [
+  'vLLM',
+  'CUDA graphs',
+  'torch.compile',
+  'FlashAttention',
+  'KV cache',
+  'Speculative decoding',
+  'Quantization',
+  'Nsight Systems',
+  'Nsight Compute',
+  'Roofline & analytical models',
+  'Pre-silicon GPU modeling',
+  'NVIDIA Hopper',
+  'Intel Xe GPUs',
+  'Python',
+  'PyTorch',
+  'Triton',
+];
 ---
 
-<Base title="About" description={`Who writes ${SITE.name}, and how the measurements are made.`}>
-  <article class="wrap-narrow prose page">
+<Base
+  title="About"
+  description={`${SITE.author}: GPU performance architect. Four years modeling AI performance on Intel GPUs, IIT Hyderabad CSE, now profiling LLM inference on NVIDIA H100s.`}
+>
+  <article class="wrap-narrow page">
     <p class="kicker">About</p>
     <h1>Hi, I’m {SITE.author}.</h1>
-
-    <!-- Edit this paragraph: your role, what you work on, what you're looking for. -->
     <p class="lede">
-      I write {SITE.name} to understand, and explain, what really happens on a GPU when an LLM answers a prompt. I’d
-      rather measure it than guess.
+      I’m a GPU performance architect. I spent four years at Intel predicting how AI workloads would run on GPUs that
+      didn’t exist yet. Now I measure how LLMs actually run on the ones that do.
     </p>
-
-    <h2>How the posts are made</h2>
-    <ol>
-      <li><strong>Predict</strong> the result from first principles: bytes moved, FLOPs, the hardware’s datasheet peaks.</li>
-      <li><strong>Measure</strong> it on real hardware: <code>vllm bench latency</code>, Nsight Systems, Nsight Compute.</li>
-      <li><strong>Explain</strong> every millisecond, and say so when something is still an open question.</li>
-      <li><strong>Publish</strong> the run: config, environment, raw data, analysis and checksums, in <a href={SITE.labsRepo}>Sillybench</a>.</li>
-    </ol>
     <p>
-      The animations are generated from code with the same numbers, so they can be re-rendered when a measurement changes. See{' '}
-      <a href={url('/runs/')}>the runs</a> for the exact setup behind each number.
+      My work sits where models meet hardware: why a kernel is slow, which limit it hits (compute, memory bandwidth,
+      latency, occupancy), and what would change if the hardware or the software changed. I studied Computer Science at{' '}
+      <strong>IIT Hyderabad</strong> (M.Tech), then joined <strong>Intel</strong>, where I built analytical performance
+      models for pre-silicon Xe GPUs and helped architects decide things like cache sizes and matrix-engine shapes.
+    </p>
+    <p>
+      {SITE.name} is where I explain what I find. Every episode predicts a result from first principles, measures it on
+      real hardware, explains every millisecond, and ships a notebook so you can check my numbers.
     </p>
 
-    <h2>Get in touch</h2>
-    <p class="links">
-      {SITE.links.linkedin && <a class="btn" href={SITE.links.linkedin}>LinkedIn</a>}
+    <div class="links">
+      {SITE.links.linkedin && <a class="btn" href={SITE.links.linkedin}>Connect on LinkedIn</a>}
       <a class={SITE.links.linkedin ? 'btn ghost' : 'btn'} href={SITE.links.github}>GitHub</a>
       {SITE.links.cv && <a class="btn ghost" href={SITE.links.cv.startsWith('/') ? url(SITE.links.cv) : SITE.links.cv}>CV (PDF)</a>}
       {SITE.links.email && <a class="btn ghost" href={`mailto:${SITE.links.email}`}>Email</a>}
+    </div>
+
+    <h2>Experience &amp; education</h2>
+    <ol class="timeline">
+      {
+        timeline.map((t) => (
+          <li>
+            <p class="when mono">{t.when}</p>
+            <div>
+              <h3>{t.what}</h3>
+              <p class="where">{t.where}</p>
+              {t.points.length > 0 && (
+                <ul>
+                  {t.points.map((p) => (
+                    <li>{p}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <h2>What I work with</h2>
+    <ul class="skills" aria-label="Skills">
+      {skills.map((s) => <li class="chip">{s}</li>)}
+    </ul>
+
+    <h2>Say hello</h2>
+    <p>
+      Spotted a wrong number, or know the answer to one of the open questions in an episode? Tell me on
+      {' '}<a href={SITE.links.linkedin || SITE.links.github}>{SITE.links.linkedin ? 'LinkedIn' : 'GitHub'}</a>.
+      Corrections get credited in the episode.
     </p>
-    <p class="muted">Spotted a wrong number, or know the answer to one of the open questions? Tell me; corrections get credited in the post.</p>
   </article>
   <div class="wrap-narrow">
     <NewsletterForm />
@@ -46,19 +139,88 @@ import { url } from '../lib/url';
   .page {
     padding-top: 3rem;
   }
-  .page h1 {
+  h1 {
     margin: 0.3rem 0 1rem;
   }
-  .lede {
-    font-size: 1.15rem;
-    color: var(--ink-2);
+  h2 {
+    margin: 3rem 0 1rem;
   }
-  .page ol {
-    margin-top: 0.5rem;
+  .lede {
+    font-size: 1.2rem;
+    color: var(--ink);
+  }
+  .page > p {
+    color: var(--ink-2);
   }
   .links {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
+    margin-top: 1.5rem;
+  }
+  .timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 2px solid var(--rule);
+  }
+  .timeline > li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 1rem;
+    padding: 0 0 1.75rem 1.25rem;
+  }
+  .timeline > li::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 0.45rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--green);
+  }
+  .when {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0.2rem 0 0;
+  }
+  h3 {
+    font-size: 1.25rem;
+  }
+  .where {
+    margin: 0.1rem 0 0.4rem;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .timeline ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--ink-2);
+    font-size: 0.97rem;
+  }
+  .timeline ul li {
+    margin-bottom: 0.35rem;
+  }
+  .skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .skills .chip {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.8rem;
+  }
+  @media (max-width: 560px) {
+    .timeline > li {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
   }
 </style>

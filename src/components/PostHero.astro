@@ -1,5 +1,6 @@
 ---
-// Top-of-post media: the silent looping animation, plus the narrated version (with captions) when there is one.
+// Top-of-post media, as tabs: the looping animation, the same story step by step (stills + carousel PDF),
+// and, only when a post has one, a narrated video with captions.
 import { mediaUrl, formatDuration } from '../lib/url';
 
 interface Props {
@@ -7,23 +8,37 @@ interface Props {
     dir: string;
     loop: { mp4: string; poster: string; width: number; height: number; seconds: number };
     narrated?: { mp4: string; vtt?: string; poster: string; seconds: number };
+    stills: { src: string; full: string }[];
+    carousel?: string;
   };
   title: string;
 }
 const { media, title } = Astro.props;
 const m = (f: string) => mediaUrl(media.dir, f);
+const tabs = [
+  { id: 'loop', label: 'Animation', meta: formatDuration(media.loop.seconds) },
+  ...(media.stills.length ? [{ id: 'steps', label: 'Step by step', meta: `${media.stills.length} steps` }] : []),
+  ...(media.narrated ? [{ id: 'narrated', label: 'Narrated', meta: formatDuration(media.narrated.seconds) }] : []),
+];
 ---
 
 <figure class="hero" data-hero>
   {
-    media.narrated && (
-      <div class="tabs" role="tablist" aria-label="Video version">
-        <button role="tab" aria-selected="true" data-tab="loop" id="tab-loop" aria-controls="panel-loop">
-          Animation <span class="mono">{formatDuration(media.loop.seconds)}</span>
-        </button>
-        <button role="tab" aria-selected="false" data-tab="narrated" id="tab-narrated" aria-controls="panel-narrated" tabindex="-1">
-          Narrated <span class="mono">{formatDuration(media.narrated.seconds)}</span>
-        </button>
+    tabs.length > 1 && (
+      <div class="tabs" role="tablist" aria-label="How to view this episode">
+        {tabs.map((t, i) => (
+          <button
+            role="tab"
+            type="button"
+            id={`tab-${t.id}`}
+            aria-controls={`panel-${t.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            tabindex={i === 0 ? 0 : -1}
+            data-tab={t.id}
+          >
+            {t.label} <span class="mono">{t.meta}</span>
+          </button>
+        ))}
       </div>
     )
   }
@@ -43,11 +58,42 @@ const m = (f: string) => mediaUrl(media.dir, f);
       >
         <source src={m(media.loop.mp4)} type="video/mp4" />
       </video>
-      <button class="playpause" type="button" data-playpause aria-label="Pause animation">
+      <button class="overlay-btn playpause" type="button" data-playpause aria-label="Pause animation">
         <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path></svg>
         <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"></path></svg>
       </button>
     </div>
+
+    {
+      media.stills.length > 0 && (
+        <div id="panel-steps" role="tabpanel" aria-labelledby="tab-steps" data-panel="steps" hidden>
+          <ol class="strip" data-strip tabindex="0" aria-label="Steps; scroll sideways or use the arrow buttons">
+            {media.stills.map((s, i) => (
+              <li>
+                <img
+                  src={m(s.src)}
+                  srcset={`${m(s.src)} 1080w, ${m(s.full)} 2160w`}
+                  sizes="(max-width: 720px) 92vw, 40rem"
+                  width="1080"
+                  height="1080"
+                  loading="lazy"
+                  decoding="async"
+                  alt={`${title}: step ${i + 1} of ${media.stills.length}`}
+                />
+              </li>
+            ))}
+          </ol>
+          <button class="overlay-btn nav prev" type="button" data-prev aria-label="Previous step">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <button class="overlay-btn nav next" type="button" data-next aria-label="Next step">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <span class="sr-only" aria-live="polite" data-count>1 / {media.stills.length}</span>
+        </div>
+      )
+    }
+
     {
       media.narrated && (
         <div id="panel-narrated" role="tabpanel" aria-labelledby="tab-narrated" data-panel="narrated" hidden>
@@ -59,6 +105,14 @@ const m = (f: string) => mediaUrl(media.dir, f);
       )
     }
   </div>
+  {
+    media.carousel && (
+      <figcaption class="below">
+        <a href={m(media.carousel)} download>Download the steps as a PDF</a>
+        <span class="muted">· the same slides as the LinkedIn carousel</span>
+      </figcaption>
+    )
+  }
 </figure>
 
 <script>
@@ -66,6 +120,8 @@ const m = (f: string) => mediaUrl(media.dir, f);
     const loop = hero.querySelector<HTMLVideoElement>('[data-loop]');
     const narrated = hero.querySelector<HTMLVideoElement>('[data-narrated]');
     const pp = hero.querySelector<HTMLButtonElement>('[data-playpause]');
+
+    // Play / pause the animation
     const setPP = () => {
       if (!loop || !pp) return;
       pp.dataset.state = loop.paused ? 'paused' : 'playing';
@@ -81,6 +137,29 @@ const m = (f: string) => mediaUrl(media.dir, f);
       setPP();
       pp?.addEventListener('click', () => (loop.paused ? loop.play() : loop.pause()));
     }
+
+    // Step-by-step strip
+    const strip = hero.querySelector<HTMLElement>('[data-strip]');
+    if (strip) {
+      const items = [...strip.children] as HTMLElement[];
+      const count = hero.querySelector<HTMLElement>('[data-count]')!;
+      const current = () => Math.round(strip.scrollLeft / strip.clientWidth);
+      const go = (i: number) =>
+        strip.scrollTo({ left: Math.max(0, Math.min(items.length - 1, i)) * strip.clientWidth, behavior: 'smooth' });
+      hero.querySelector('[data-prev]')!.addEventListener('click', () => go(current() - 1));
+      hero.querySelector('[data-next]')!.addEventListener('click', () => go(current() + 1));
+      strip.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') { e.preventDefault(); go(current() + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(current() - 1); }
+      });
+      let raf = 0;
+      strip.addEventListener('scroll', () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => (count.textContent = `${current() + 1} / ${items.length}`));
+      });
+    }
+
+    // Tabs
     const tabs = hero.querySelectorAll<HTMLButtonElement>('[role="tab"]');
     const show = (name: string) => {
       tabs.forEach((t) => {
@@ -89,11 +168,12 @@ const m = (f: string) => mediaUrl(media.dir, f);
         t.tabIndex = on ? 0 : -1;
       });
       hero.querySelectorAll<HTMLElement>('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== name));
-      if (name === 'narrated') {
-        loop?.pause();
+      if (name === 'loop') {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) loop?.play().catch(() => {});
       } else {
-        narrated?.pause();
+        loop?.pause();
       }
+      if (name !== 'narrated') narrated?.pause();
     };
     tabs.forEach((t) => {
       t.addEventListener('click', () => show(t.dataset.tab!));
@@ -115,7 +195,8 @@ const m = (f: string) => mediaUrl(media.dir, f);
   }
   .tabs {
     display: flex;
-    gap: 0.25rem;
+    flex-wrap: wrap;
+    gap: 0.35rem;
     margin-bottom: 0.6rem;
   }
   .tabs button {
@@ -147,16 +228,44 @@ const m = (f: string) => mediaUrl(media.dir, f);
     position: relative;
     overflow: hidden;
     padding: 0;
-  }
-  .frame video {
-    width: 100%;
     aspect-ratio: 1;
     background: #f7f3ec;
   }
-  .playpause {
+  [data-panel] {
+    position: relative;
+    height: 100%;
+  }
+  .frame video {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
+    background: #f7f3ec;
+  }
+  .strip {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .strip::-webkit-scrollbar {
+    display: none;
+  }
+  .strip li {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+  }
+  .strip img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .overlay-btn {
     position: absolute;
-    right: 0.75rem;
-    bottom: 0.75rem;
     width: 44px;
     height: 44px;
     border-radius: 999px;
@@ -168,12 +277,16 @@ const m = (f: string) => mediaUrl(media.dir, f);
     cursor: pointer;
     opacity: 0.85;
   }
-  .playpause:hover {
+  .overlay-btn:hover {
     opacity: 1;
   }
-  .playpause svg {
+  .overlay-btn svg {
     width: 20px;
     height: 20px;
+  }
+  .playpause {
+    right: 0.75rem;
+    bottom: 0.75rem;
   }
   .playpause .i-play {
     display: none;
@@ -183,5 +296,20 @@ const m = (f: string) => mediaUrl(media.dir, f);
   }
   .playpause[data-state='paused'] .i-pause {
     display: none;
+  }
+  .nav {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .prev {
+    left: 0.6rem;
+  }
+  .next {
+    right: 0.6rem;
+  }
+  .below {
+    margin-top: 0.6rem;
+    font-size: 0.88rem;
+    text-align: center;
   }
 </style>

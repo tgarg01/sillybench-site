@@ -1,54 +1,119 @@
 ---
-// "Reproduce it" box. Used in MDX as <Reproduce post={frontmatter} />.
-import { repoUrl, colabUrl } from '../lib/url';
+// "Reproduce it": the episode's Jupyter notebook, readable in place (scrollable), plus Colab / GitHub / download
+// and the commands to run it locally. Used in MDX as <Reproduce post={frontmatter} />.
+import path from 'node:path';
+import { repoUrl, colabUrl, mediaUrl } from '../lib/url';
+import { renderNotebook } from '../lib/notebook';
 
 interface Props {
   post: {
-    repro?: { repo: string; ref: string; path?: string; notebook?: string; colab?: boolean; note?: string };
+    media: { dir: string };
+    repro?: {
+      repo: string;
+      ref: string;
+      path?: string;
+      notebook?: string;
+      colab?: boolean;
+      view?: string;
+      viewNote?: string;
+      note?: string;
+    };
   };
 }
-const r = Astro.props.post.repro;
+const { media, repro: r } = Astro.props.post;
 const repoName = r ? r.repo.split('/').pop() : '';
-const lines = r
+const nbName = r?.notebook?.split('/').pop();
+const nbDir = r?.notebook ? r.notebook.split('/').slice(0, -1).join('/') : '';
+const cells =
+  r?.view && r.notebook
+    ? await renderNotebook(
+        path.join(process.cwd(), 'public', 'media', media.dir, r.view),
+        `${r.repo}/blob/${r.ref}/${nbDir}/`,
+      )
+    : [];
+const commands = r?.notebook
   ? [
-      `git clone ${r.repo}.git`,
-      `cd ${repoName}${r.ref !== 'main' ? ` && git checkout ${r.ref}` : ''}`,
-      ...(r.notebook ? ['bash posts/setup_posts.sh', `.venv-posts/bin/jupyter lab ${r.notebook}`] : []),
-    ]
-  : [];
+      `git clone --depth 1 --branch ${r.ref} ${r.repo}.git`,
+      `cd ${repoName}`,
+      'bash posts/setup_posts.sh',
+      `.venv-posts/bin/jupyter lab ${r.notebook}`,
+    ].join('\n')
+  : '';
 ---
 
 {
   r && (
-    <section class="repro card" aria-labelledby="repro-h">
+    <section class="repro" aria-labelledby="repro-h">
       <h2 id="repro-h">Reproduce it</h2>
       {r.notebook ? (
         <p>
-          The notebook prints this post’s numbers. <strong>No GPU?</strong> It reads the stored H100 results
-          (mode: stored) and runs on any laptop. With an NVIDIA GPU and vLLM it measures them on yours.
+          Every number in this episode comes out of this notebook. <strong>No GPU?</strong> It reads the stored H100
+          results and runs on any laptop or in Colab. With an NVIDIA GPU and vLLM it measures them on yours.
         </p>
       ) : (
-        <p>{r.note ?? 'This post’s numbers come straight from the run files linked below; every table and figure is in the repo.'}</p>
+        <p>{r.note ?? 'The notebook for this episode is coming soon.'}</p>
       )}
+
       <div class="actions">
         {r.notebook && r.colab && (
           <a class="btn" href={colabUrl(r.repo, r.ref, r.notebook)}>
             Open in Colab
           </a>
         )}
-        <a class={r.notebook && r.colab ? 'btn ghost' : 'btn'} href={repoUrl(r.repo, r.ref, r.path)}>
+        <a class={r.notebook && r.colab ? 'btn ghost' : 'btn'} href={r.notebook ? `${r.repo}/blob/${r.ref}/${r.notebook}` : repoUrl(r.repo, r.ref, r.path)}>
           View on GitHub
         </a>
+        {r.view && (
+          <a class="btn ghost" href={mediaUrl(media.dir, r.view)} download={nbName}>
+            Download .ipynb
+          </a>
+        )}
       </div>
-      {r.notebook && (
-        <div class="code">
-          <div class="code-head">
-            <span class="kicker">Mac / Linux</span>
-            <button type="button" class="copy" data-copy>Copy</button>
+
+      {cells.length > 0 && (
+        <figure class="nb card">
+          <figcaption class="nb-bar">
+            <span class="mono nb-file">{nbName}</span>
+            <span class="muted nb-note">{r.viewNote ?? `at ${r.ref}`}</span>
+          </figcaption>
+          <div class="nb-scroll" tabindex="0" role="region" aria-label={`Notebook ${nbName}, scrollable`}>
+            {cells.map((c) =>
+              c.kind === 'markdown' ? (
+                <div class="nb-cell nb-md" set:html={c.html} />
+              ) : (
+                <div class="nb-cell nb-code">
+                  <div class="nb-in">
+                    <span class="nb-prompt mono" aria-hidden="true">[{c.count ?? ' '}]</span>
+                    <div class="nb-src" set:html={c.html} />
+                  </div>
+                  {c.outputs.length > 0 && (
+                    <div class="nb-out">
+                      {c.outputs.map((o) => (
+                        <Fragment set:html={o} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
           </div>
-          <pre><code>{lines.join('\n')}</code></pre>
-          <p class="muted small">Windows: see the setup notes in the repo’s <code>posts/README.md</code>. Then Run All.</p>
-        </div>
+        </figure>
+      )}
+
+      {commands && (
+        <details class="local">
+          <summary>Run it on your machine</summary>
+          <div class="code">
+            <div class="code-head">
+              <span class="kicker">Mac / Linux</span>
+              <button type="button" class="copy" data-copy>Copy</button>
+            </div>
+            <pre><code>{commands}</code></pre>
+            <p class="muted small">
+              Windows: see <code>posts/README.md</code> in the repo. Then Run All.
+            </p>
+          </div>
+        </details>
       )}
     </section>
   )
@@ -71,8 +136,7 @@ const lines = r
 
 <style>
   .repro {
-    margin: 1.25rem 0 2.5rem;
-    padding: 1.4rem 1.25rem 1.25rem;
+    margin: 3rem 0 2.5rem;
   }
   h2 {
     margin-bottom: 0.6rem;
@@ -81,10 +145,139 @@ const lines = r
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
-    margin: 1rem 0;
+    margin: 1rem 0 1.25rem;
+  }
+
+  /* Notebook window */
+  .nb {
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+  .nb-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--code-bg);
+    font-size: 0.85rem;
+  }
+  .nb-file {
+    font-weight: 600;
+  }
+  .nb-scroll {
+    max-height: min(36rem, 75vh);
+    overflow: auto;
+    padding: 1rem 1rem 1.5rem;
+    overscroll-behavior: contain;
+    font-size: 0.92rem;
+  }
+  .nb-cell + .nb-cell {
+    margin-top: 0.9rem;
+  }
+  .nb-md :global(h1) {
+    font-size: 1.6rem;
+    margin: 0.25rem 0 0.75rem;
+  }
+  .nb-md :global(h2) {
+    font-size: 1.3rem;
+    margin: 1.4rem 0 0.4rem;
+  }
+  .nb-md :global(h3) {
+    font-size: 1.1rem;
+    margin: 1rem 0 0.4rem;
+  }
+  .nb-md :global(p),
+  .nb-md :global(ul),
+  .nb-md :global(ol) {
+    margin: 0 0 0.6rem;
+  }
+  .nb-md :global(ul),
+  .nb-md :global(ol) {
+    padding-left: 1.3rem;
+  }
+  .nb-in {
+    display: grid;
+    grid-template-columns: 2.6rem minmax(0, 1fr);
+    gap: 0.35rem;
+  }
+  .nb-prompt {
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding-top: 0.75rem;
+    text-align: right;
+  }
+  .nb-src :global(pre) {
+    margin: 0;
+    padding: 0.7rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    background: var(--code-bg) !important;
+  }
+  .nb-src :global(.shiki span) {
+    color: var(--shiki-light);
+  }
+  :global(:root[data-theme='dark']) .nb-src :global(.shiki span) {
+    color: var(--shiki-dark);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .nb-src :global(.shiki span) {
+      color: var(--shiki-dark);
+    }
+  }
+  .nb-out {
+    margin: 0.4rem 0 0 2.95rem;
+    min-width: 0;
+  }
+  .nb-out :global(.nb-stream) {
+    margin: 0 0 0.4rem;
+    padding: 0.35rem 0.1rem;
+    background: transparent;
+    font-size: 0.8rem;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .nb-out :global(.nb-stream.err) {
+    color: var(--red);
+  }
+  .nb-out :global(.nb-img) {
+    max-width: 100%;
+    background: #fff;
+    border-radius: 6px;
+    margin: 0.25rem 0 0.5rem;
+  }
+  .nb-out :global(.nb-html) {
+    overflow-x: auto;
+    margin-bottom: 0.4rem;
+  }
+  .nb-out :global(table) {
+    width: auto;
+    font-size: 0.8rem;
+  }
+  .nb-out :global(th),
+  .nb-out :global(td) {
+    padding: 0.3rem 0.6rem;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Local run */
+  .local {
+    margin-top: 1.25rem;
+  }
+  .local summary {
+    cursor: pointer;
+    font-weight: 600;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
   .code {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
   }
   .code-head {
     display: flex;
@@ -108,5 +301,16 @@ const lines = r
   .small {
     font-size: 0.85rem;
     margin: 0;
+  }
+  @media (max-width: 480px) {
+    .nb-in {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .nb-prompt {
+      display: none;
+    }
+    .nb-out {
+      margin-left: 0;
+    }
   }
 </style>

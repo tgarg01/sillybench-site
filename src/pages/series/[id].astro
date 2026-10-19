@@ -1,0 +1,129 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import NewsletterForm from '../../components/NewsletterForm.astro';
+import { SERIES, type Series } from '../../data/series';
+import { mediaUrl, postUrl, formatDate } from '../../lib/url';
+
+export function getStaticPaths() {
+  return SERIES.map((s) => ({ params: { id: s.id }, props: { series: s } }));
+}
+interface Props {
+  series: Series;
+}
+const { series } = Astro.props;
+const episodes = (await getCollection('posts', (p) => !p.data.draft && p.data.series === series.id)).sort(
+  (a, b) => a.data.episode - b.data.episode,
+);
+const repoName = series.repo.replace('https://github.com/', '');
+---
+
+<Base title={`Series ${series.number}: ${series.title}`} description={series.blurb}>
+  <header class="wrap-narrow head">
+    <p class="kicker">Series {series.number} · {episodes.length} {episodes.length === 1 ? 'episode' : 'episodes'} out</p>
+    <h1>{series.title}</h1>
+    <p class="lede">{series.blurb}</p>
+    <p class="repo">
+      Notebooks for every episode: <a class="mono" href={series.repo}>{repoName}</a>
+    </p>
+  </header>
+
+  <ol class="wrap-narrow eps">
+    {
+      episodes.map((p) => (
+        <li class="ep card">
+          <a href={postUrl(p.id)} class="thumb" tabindex="-1" aria-hidden="true">
+            <img src={mediaUrl(p.data.media.dir, p.data.media.card ?? p.data.media.loop.poster)} alt="" width="160" height="160" loading="lazy" />
+          </a>
+          <div>
+            <p class="kicker">
+              Episode {p.data.episode} · {formatDate(p.data.date)}
+            </p>
+            <h2 class="t">
+              <a href={postUrl(p.id)}>{p.data.title}</a>
+            </h2>
+            <p class="muted c">{p.data.description}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="wrap-narrow">
+    <p class="muted note">New episodes are added as the measurements come in.</p>
+    <NewsletterForm />
+  </div>
+</Base>
+
+<style>
+  .head {
+    padding-top: 3rem;
+    padding-bottom: 1.5rem;
+  }
+  .lede {
+    font-size: 1.1rem;
+    color: var(--ink-2);
+    margin: 1rem 0 0.5rem;
+  }
+  .repo {
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .eps {
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .ep {
+    position: relative;
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.85rem;
+  }
+  .ep:hover {
+    border-color: var(--green);
+  }
+  .thumb img {
+    width: 6.5rem;
+    height: 6.5rem;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+  }
+  .t {
+    font-size: 1.25rem;
+  }
+  .t a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .t a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .kicker {
+    margin: 0 0 0.2rem;
+  }
+  .c {
+    margin: 0.3rem 0 0;
+    font-size: 0.92rem;
+  }
+  .note {
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+  }
+  @media (max-width: 480px) {
+    .ep {
+      grid-template-columns: 4.5rem 1fr;
+      gap: 0.75rem;
+    }
+    .thumb img {
+      width: 4.5rem;
+      height: 4.5rem;
+    }
+  }
+</style>

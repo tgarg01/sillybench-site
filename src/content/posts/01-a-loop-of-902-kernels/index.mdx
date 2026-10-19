@@ -2,7 +2,6 @@
 title: "To an H100, Qwen3.8-27B isn't a model. It's a loop of 902 kernels."
 description: "What one decode step of Qwen3.8-27B looks like on an H100: 902 kernels in 20.55 ms, 92.6% of the GPU time in matrix multiplies. Measured with vLLM 0.31 and Nsight Systems."
 series: "llm-inference-gpu"
-part: 1
 date: 2026-10-18
 tags: ["LLMInference","GPU","CUDA","vLLM","NVIDIA"]
 media:
@@ -27,11 +26,6 @@ media:
     width: 720
     height: 720
     seconds: 35.6
-  narrated:
-    mp4: "narrated.mp4"
-    poster: "stills/step01.webp"
-    seconds: 85.3
-    vtt: "narrated.vtt"
   carousel: "carousel.pdf"
   og: "og.png"
   card: "stills/step10.webp"
@@ -43,12 +37,12 @@ measuredOn:
   run: "2026-10-09_qwen3.8-27b_bf16_initial"
 repro:
   repo: "https://github.com/tgarg01/Sillybench"
-  ref: "main"
+  ref: "post-01"
   path: "runs/2026-10-09_qwen3.8-27b_bf16_initial/analysis"
-  note: "Concept post, so there is no notebook: every number comes from the run’s analysis files (CSV tables and figures), listed in the sources below."
+  note: "The notebook for this episode is on its way. Until then, every number traces to the run’s analysis files listed in the sources below."
+episode: 1
 # linkedin: https://www.linkedin.com/feed/update/...   (adds a "Discuss on LinkedIn" button)
 ---
-import StepGallery from '../../../components/StepGallery.astro';
 import MeasuredOn from '../../../components/MeasuredOn.astro';
 import Reproduce from '../../../components/Reproduce.astro';
 import Sources from '../../../components/Sources.astro';
@@ -82,13 +76,11 @@ An LLM is mostly matrix multiplies. A GPU is a machine built to run them in para
 
 Which kernel would you guess is the slowest?
 
-<StepGallery post={frontmatter} />
-
 ## Go deeper
 
 The 902 kernels, grouped by what they do. This is the chart behind “92.6% GEMMs”, from the same run’s Nsight Systems traces.
 
-<Figure post={frontmatter} file="figures/C2_categories.png" alt="Two stacked bar charts of GPU kernel time by category, for prefill and for one decode step, at batch 1 and 32, with CUDA graphs and eager. GEMMs (blue) dominate every bar." source="https://github.com/tgarg01/Sillybench/blob/main/runs/2026-10-09_qwen3.8-27b_bf16_initial/analysis/C2_categories.png" sourceLabel="C2_categories.png on GitHub">Right: one decode step. At batch 1 with CUDA graphs (bottom bar) it is almost all GEMM. The eager bar adds copy and elementwise work (orange) because torch.compile’s fused kernels are off. This counts kernel time only: eager mode also leaves the GPU idle between launches, which is why a full eager step takes about 60 ms (a later part). At batch 32 the Gated DeltaNet recurrent kernel (purple) appears, the hybrid-model cost covered later in the series.</Figure>
+<Figure post={frontmatter} file="figures/C2_categories.png" alt="Two stacked bar charts of GPU kernel time by category, for prefill and for one decode step, at batch 1 and 32, with CUDA graphs and eager. GEMMs (blue) dominate every bar." source="https://github.com/tgarg01/Sillybench/blob/main/runs/2026-10-09_qwen3.8-27b_bf16_initial/analysis/C2_categories.png" sourceLabel="C2_categories.png on GitHub">Right: one decode step. At batch 1 with CUDA graphs (bottom bar) it is almost all GEMM. The eager bar adds copy and elementwise work (orange) because torch.compile’s fused kernels are off. This counts kernel time only: eager mode also leaves the GPU idle between launches, which is why a full eager step takes about 60 ms (a later episode). At batch 32 the Gated DeltaNet recurrent kernel (purple) appears, the hybrid-model cost covered in a later episode.</Figure>
 
 <MeasuredOn post={frontmatter} />
 

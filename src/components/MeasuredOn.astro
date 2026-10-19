@@ -1,13 +1,17 @@
 ---
 // "Measured on" box: the exact setup behind the post's numbers. Used in MDX as <MeasuredOn post={frontmatter} />.
-import { SITE } from '../site.config';
-import { repoUrl, url } from '../lib/url';
+import { repoUrl } from '../lib/url';
+import { getSeries } from '../data/series';
 
 interface Props {
-  post: { measuredOn?: { gpu: string; model: string; engine: string; workload: string; run?: string }; repro?: { repo: string; ref: string } };
+  post: {
+    series?: string;
+    measuredOn?: { gpu: string; model: string; engine: string; workload: string; run?: string };
+    repro?: { repo: string; ref: string };
+  };
 }
 const mo = Astro.props.post.measuredOn;
-const repo = Astro.props.post.repro?.repo ?? SITE.labsRepo;
+const repo = Astro.props.post.repro?.repo ?? getSeries(Astro.props.post.series ?? 'llm-inference-gpu').repo;
 const ref = Astro.props.post.repro?.ref ?? 'main';
 ---
 
@@ -24,8 +28,7 @@ const ref = Astro.props.post.repro?.ref ?? 'main';
           <div>
             <dt>Run</dt>
             <dd>
-              <a class="mono" href={repoUrl(repo, ref, `runs/${mo.run}`)}>{mo.run}</a>{' '}
-              <a class="muted small" href={url(`/runs/#${mo.run}`)}>about this run</a>
+              <a class="mono" href={repoUrl(repo, ref, `runs/${mo.run}`)}>{mo.run}</a>
             </dd>
           </div>
         )}
@@ -61,10 +64,6 @@ const ref = Astro.props.post.repro?.ref ?? 'main';
     margin: 0;
     font-size: 0.95rem;
     overflow-wrap: anywhere;
-  }
-  .small {
-    font-size: 0.82rem;
-    margin-left: 0.25rem;
   }
   @media (max-width: 480px) {
     dl div {

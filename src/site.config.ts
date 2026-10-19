@@ -11,15 +11,12 @@ export const SITE = {
 
   links: {
     github: 'https://github.com/tgarg01',
-    linkedin: '', // e.g. https://www.linkedin.com/in/<you>/
+    linkedin: 'https://www.linkedin.com/in/tushargarg22/',
     youtube: '',
     x: '',
     cv: '', // link to a PDF résumé (e.g. /cv.pdf in public/) to show a CV button on /about
     email: '', // shown on /about if set
   },
-
-  // The reproducibility repo every post points at.
-  labsRepo: 'https://github.com/tgarg01/Sillybench',
 
   // Where post media (videos, stills, PDFs) is served from. Defaults to /media inside this site.
   // Move it to Cloudflare R2 later by uploading public/media/ and setting PUBLIC_MEDIA_BASE at build time.

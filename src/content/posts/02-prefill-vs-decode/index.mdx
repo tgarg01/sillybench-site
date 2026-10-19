@@ -2,7 +2,6 @@
 title: "Same 64 layers. Same kernels. Two completely different jobs for the GPU."
 description: "Prefill vs decode on an H100, measured: 512 prompt tokens in 54 ms at 46% of peak compute, then 20.6 ms per token at 74% of peak memory bandwidth. Why one is compute-bound and the other memory-bound."
 series: "llm-inference-gpu"
-part: 2
 date: 2026-10-19
 tags: ["LLMInference","GPU","CUDA","vLLM","NVIDIA"]
 media:
@@ -32,13 +31,15 @@ measuredOn:
   run: "2026-10-09_qwen3.8-27b_bf16_initial"
 repro:
   repo: "https://github.com/tgarg01/Sillybench"
-  ref: "main"
+  ref: "post-02"
   path: "posts/post-02"
   notebook: "posts/post-02/post-02.ipynb"
-  colab: false
+  colab: true
+  view: "notebook.ipynb"
+  viewNote: "post-02 · outputs from a run without a GPU (stored results), 2026-10-19"
+episode: 2
 # linkedin: https://www.linkedin.com/feed/update/...   (adds a "Discuss on LinkedIn" button)
 ---
-import StepGallery from '../../../components/StepGallery.astro';
 import MeasuredOn from '../../../components/MeasuredOn.astro';
 import Reproduce from '../../../components/Reproduce.astro';
 import Sources from '../../../components/Sources.astro';
@@ -80,13 +81,11 @@ Even at the full 3.35 TB/s, a decode step can't go faster than 15.3 ms. The GPU 
 
 **Next post:** what if 32 users decode at the same time? The weights get read once for all of them.
 
-<StepGallery post={frontmatter} />
-
 ## Go deeper
 
-The roofline above places the whole decode step. Here is the same plot for each decode GEMM separately, at batch 1 and batch 32. Times are measured with Nsight Systems; bytes and FLOPs are computed from the weight shapes.
+The roofline in the step-by-step view places the whole decode step. Here is the same plot for each decode GEMM separately, at batch 1 and batch 32. Times are measured with Nsight Systems; bytes and FLOPs are computed from the weight shapes.
 
-<Figure post={frontmatter} file="figures/C4_roofline_napkin.png" alt="Log-log roofline of the H100 with every decode GEMM plotted. Batch-1 GEMMs cluster at about 1 FLOP per byte on the memory slope; batch-32 GEMMs sit about 32 times further right and higher; one GEMM, gdn.in_proj_ba, sits well below the slope at both batch sizes." source="https://github.com/tgarg01/Sillybench/blob/main/runs/2026-10-09_qwen3.8-27b_bf16_initial/analysis/C4_roofline_napkin.png" sourceLabel="C4_roofline_napkin.png on GitHub">At batch 1 (blue) every GEMM sits at about 1 FLOP per byte, right on the memory slope. At batch 32 (orange) the same weights serve 32 tokens, so each GEMM moves about 32x to the right and up, and is still left of the 295 balance point. That is the next part’s topic. The outlier, <code>gdn.in_proj_ba</code>, sits well below the slope at both batch sizes: it is too small to keep the GPU busy, a story for a later part.</Figure>
+<Figure post={frontmatter} file="figures/C4_roofline_napkin.png" alt="Log-log roofline of the H100 with every decode GEMM plotted. Batch-1 GEMMs cluster at about 1 FLOP per byte on the memory slope; batch-32 GEMMs sit about 32 times further right and higher; one GEMM, gdn.in_proj_ba, sits well below the slope at both batch sizes." source="https://github.com/tgarg01/Sillybench/blob/main/runs/2026-10-09_qwen3.8-27b_bf16_initial/analysis/C4_roofline_napkin.png" sourceLabel="C4_roofline_napkin.png on GitHub">At batch 1 (blue) every GEMM sits at about 1 FLOP per byte, right on the memory slope. At batch 32 (orange) the same weights serve 32 tokens, so each GEMM moves about 32x to the right and up, and is still left of the 295 balance point. That is the next episode’s topic. The outlier, <code>gdn.in_proj_ba</code>, sits well below the slope at both batch sizes: it is too small to keep the GPU busy, a story for a later episode.</Figure>
 
 <MeasuredOn post={frontmatter} />
 

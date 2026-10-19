@@ -1,73 +1,57 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { postUrl, url } from '../lib/url';
-import { PLAN, SERIES, TOTAL_PARTS } from '../data/series';
+import { getSeries } from '../data/series';
 
 interface Props {
   current: CollectionEntry<'posts'>;
   all: CollectionEntry<'posts'>[];
 }
 const { current, all } = Astro.props;
-const sorted = all.filter((p) => p.data.series === current.data.series).sort((a, b) => a.data.part - b.data.part);
-const i = sorted.findIndex((p) => p.id === current.id);
-const prev = sorted[i - 1];
-const next = sorted[i + 1];
-const publishedParts = new Set(sorted.map((p) => p.data.part));
-const upcoming = !next ? PLAN.find((p) => p.part === current.data.part + 1) : undefined;
+const series = getSeries(current.data.series);
+const episodes = all.filter((p) => p.data.series === current.data.series).sort((a, b) => a.data.episode - b.data.episode);
+const i = episodes.findIndex((p) => p.id === current.id);
+const prev = episodes[i - 1];
+const next = episodes[i + 1];
 ---
 
 <nav class="series-nav" aria-label="Series navigation">
   <p class="kicker">
-    <a href={url(`/series/${SERIES.id}/`)}>{SERIES.title}</a> · Part {current.data.part} of {TOTAL_PARTS}
+    <a href={url(`/series/${series.id}/`)}>Series {series.number}: {series.title}</a>
   </p>
-  <div class="progress" role="img" aria-label={`${sorted.length} of ${TOTAL_PARTS} parts published`}>
-    {Array.from({ length: TOTAL_PARTS }, (_, k) => <span class:list={{ done: publishedParts.has(k + 1), here: k + 1 === current.data.part }} />)}
-  </div>
-  <div class="pn">
-    {prev ? (
-      <a class="card link" href={postUrl(prev.id)} rel="prev">
-        <span class="muted small">← Part {prev.data.part}</span>
-        <span class="t">{prev.data.title}</span>
-      </a>
-    ) : <span />}
-    {next ? (
-      <a class="card link right" href={postUrl(next.id)} rel="next">
-        <span class="muted small">Part {next.data.part} →</span>
-        <span class="t">{next.data.title}</span>
-      </a>
-    ) : upcoming ? (
-      <div class="card link right soon">
-        <span class="muted small">Coming next · Part {upcoming.part}</span>
-        <span class="t">{upcoming.title}</span>
+  {
+    (prev || next) && (
+      <div class="pn">
+        {prev ? (
+          <a class="card link" href={postUrl(prev.id)} rel="prev">
+            <span class="muted small">← Episode {prev.data.episode}</span>
+            <span class="t">{prev.data.title}</span>
+          </a>
+        ) : (
+          <span />
+        )}
+        {next ? (
+          <a class="card link right" href={postUrl(next.id)} rel="next">
+            <span class="muted small">Episode {next.data.episode} →</span>
+            <span class="t">{next.data.title}</span>
+          </a>
+        ) : (
+          <span />
+        )}
       </div>
-    ) : <span />}
-  </div>
+    )
+  }
 </nav>
 
 <style>
   .series-nav {
     margin: 3rem 0 2rem;
   }
+  .kicker {
+    margin-bottom: 0.75rem;
+  }
   .kicker a {
     color: inherit;
-  }
-  .progress {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(6px, 1fr));
-    gap: 4px;
-    margin: 0.5rem 0 1rem;
-  }
-  .progress span {
-    height: 6px;
-    border-radius: 3px;
-    background: var(--rule);
-  }
-  .progress span.done {
-    background: var(--green);
-  }
-  .progress span.here {
-    outline: 2px solid var(--ink);
-    outline-offset: 1px;
   }
   .pn {
     display: grid;
@@ -87,11 +71,6 @@ const upcoming = !next ? PLAN.find((p) => p.part === current.data.part + 1) : un
   }
   .right {
     text-align: right;
-  }
-  .soon {
-    border-style: dashed;
-    box-shadow: none;
-    background: transparent;
   }
   .t {
     font-family: var(--font-hand);

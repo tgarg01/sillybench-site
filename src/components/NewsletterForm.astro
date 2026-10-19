@@ -9,8 +9,8 @@ const user = SITE.newsletter.buttondownUser;
 ---
 
 <section class:list={['nl card', { compact: Astro.props.compact }]} aria-labelledby="nl-h">
-  <h2 id="nl-h">Get the next part</h2>
-  <p class="muted">One email when a new part is out, plus one figure that doesn’t fit on LinkedIn. No spam.</p>
+  <h2 id="nl-h">Get the next episode</h2>
+  <p class="muted">One email when a new episode is out, plus one figure that doesn’t fit on LinkedIn. No spam.</p>
   {
     user ? (
       <form action={`https://buttondown.com/api/emails/embed-subscribe/${user}`} method="post" target="_blank" class="f">
