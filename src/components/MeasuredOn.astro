@@ -1,0 +1,75 @@
+---
+// "Measured on" box: the exact setup behind the post's numbers. Used in MDX as <MeasuredOn post={frontmatter} />.
+import { SITE } from '../site.config';
+import { repoUrl, url } from '../lib/url';
+
+interface Props {
+  post: { measuredOn?: { gpu: string; model: string; engine: string; workload: string; run?: string }; repro?: { repo: string; ref: string } };
+}
+const mo = Astro.props.post.measuredOn;
+const repo = Astro.props.post.repro?.repo ?? SITE.labsRepo;
+const ref = Astro.props.post.repro?.ref ?? 'main';
+---
+
+{
+  mo && (
+    <section class="measured card" aria-labelledby="measured-h">
+      <h2 id="measured-h" class="kicker">Measured on</h2>
+      <dl>
+        <div><dt>GPU</dt><dd>{mo.gpu}</dd></div>
+        <div><dt>Model</dt><dd>{mo.model}</dd></div>
+        <div><dt>Engine</dt><dd>{mo.engine}</dd></div>
+        <div><dt>Workload</dt><dd>{mo.workload}</dd></div>
+        {mo.run && (
+          <div>
+            <dt>Run</dt>
+            <dd>
+              <a class="mono" href={repoUrl(repo, ref, `runs/${mo.run}`)}>{mo.run}</a>{' '}
+              <a class="muted small" href={url(`/runs/#${mo.run}`)}>about this run</a>
+            </dd>
+          </div>
+        )}
+      </dl>
+    </section>
+  )
+}
+
+<style>
+  .measured {
+    margin: 2.5rem 0 1.25rem;
+    padding: 1.1rem 1.25rem;
+    border-left: 4px solid var(--green);
+  }
+  h2 {
+    margin: 0 0 0.6rem;
+  }
+  dl {
+    margin: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  dl div {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 0.75rem;
+  }
+  dt {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  dd {
+    margin: 0;
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+  }
+  .small {
+    font-size: 0.82rem;
+    margin-left: 0.25rem;
+  }
+  @media (max-width: 480px) {
+    dl div {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>

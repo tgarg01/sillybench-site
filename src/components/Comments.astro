@@ -1,0 +1,36 @@
+---
+import { SITE } from '../site.config';
+const g = SITE.giscus;
+const on = g.repo && g.repoId && g.category && g.categoryId;
+---
+
+{
+  on && (
+    <section class="comments" aria-label="Comments">
+      <script
+        is:inline
+        src="https://giscus.app/client.js"
+        data-repo={g.repo}
+        data-repo-id={g.repoId}
+        data-category={g.category}
+        data-category-id={g.categoryId}
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async
+      />
+    </section>
+  )
+}
+
+<style>
+  .comments {
+    margin-top: 3rem;
+  }
+</style>

@@ -1,0 +1,339 @@
+/* Brand tokens come from the post animations (make_gif.py): cream dotted paper, near-black ink,
+   green for "the point", red for memory-bound, blue for compute-bound. */
+:root {
+  --paper: #f7f3ec;
+  --paper-2: #fcfaf6;
+  --ink: #1f1f1f;
+  --ink-2: #45423d;
+  --muted: #6e6a64;
+  --rule: #ded7cc;
+  --dot: #e2dbd0;
+  --green: #2e7d4f;
+  --green-soft: #e3efe6;
+  --red: #c0392b;
+  --red-soft: #f6e6e2;
+  --blue: #3d74b8;
+  --blue-soft: #e5edf6;
+  --code-bg: #efe9df;
+  --shadow: 0 1px 0 rgba(31, 31, 31, 0.04), 0 8px 24px -12px rgba(31, 31, 31, 0.18);
+
+  --font-hand: 'Kalam', 'Comic Neue', cursive;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --measure: 42rem;
+  --wide: 64rem;
+  --gutter: 16px;
+  --radius: 14px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #161513;
+    --paper-2: #1f1d1a;
+    --ink: #ede8df;
+    --ink-2: #cdc7bc;
+    --muted: #9c968c;
+    --rule: #35322d;
+    --dot: #26241f;
+    --green: #67c28d;
+    --green-soft: #1d2b22;
+    --red: #e8786b;
+    --red-soft: #2e1f1c;
+    --blue: #7eaae2;
+    --blue-soft: #1c2430;
+    --code-bg: #24221e;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --paper: #161513;
+  --paper-2: #1f1d1a;
+  --ink: #ede8df;
+  --ink-2: #cdc7bc;
+  --muted: #9c968c;
+  --rule: #35322d;
+  --dot: #26241f;
+  --green: #67c28d;
+  --green-soft: #1d2b22;
+  --red: #e8786b;
+  --red-soft: #2e1f1c;
+  --blue: #7eaae2;
+  --blue-soft: #1c2430;
+  --code-bg: #24221e;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1.1px, transparent 1.4px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--green);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 {
+  font-size: clamp(2rem, 1.4rem + 2.6vw, 3.1rem);
+}
+h2 {
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+}
+h3 {
+  font-size: 1.3rem;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+}
+:not(pre) > code {
+  background: var(--code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--code-bg);
+  padding: 1rem 1.1rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+hr {
+  border: 0;
+  border-top: 1px dashed var(--rule);
+  margin: 2.5rem 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+th {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wrap {
+  width: 100%;
+  max-width: calc(var(--wide) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.wrap-narrow {
+  width: 100%;
+  max-width: calc(var(--measure) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.hand {
+  font-family: var(--font-hand);
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.muted {
+  color: var(--muted);
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.chip.green {
+  background: var(--green-soft);
+  border-color: transparent;
+  color: var(--green);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: 600 0.92rem/1 var(--font-body);
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+  cursor: pointer;
+  min-height: 44px;
+}
+.btn:hover {
+  text-decoration: none;
+  opacity: 0.9;
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.card {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Long-form text inside a post (the LinkedIn text plus anything added in MDX). */
+.prose {
+  font-size: 1.0625rem;
+}
+.prose > * + h2 {
+  margin-top: 3rem;
+}
+.prose h2 {
+  margin-bottom: 1rem;
+}
+.prose h3 {
+  margin: 2rem 0 0.75rem;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.4rem;
+  margin: -0.5rem 0 1.25rem;
+}
+.prose li {
+  margin: 0.25rem 0;
+}
+.prose ul li::marker {
+  content: '→  ';
+  color: var(--green);
+  font-weight: 700;
+}
+.prose ol li::marker {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--green);
+}
+.prose p:has(+ ul),
+.prose p:has(+ ol) {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.prose ul,
+.prose ol {
+  margin-top: 0;
+}
+.prose strong {
+  font-weight: 650;
+}
+.prose table {
+  margin: 1.25rem 0 1.75rem;
+  font-size: 0.95rem;
+}
+.prose .table-scroll {
+  overflow-x: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

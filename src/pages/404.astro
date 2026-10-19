@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="Not found">
+  <div class="wrap-narrow page">
+    <p class="kicker">404</p>
+    <h1>This kernel never launched.</h1>
+    <p class="muted">The page you’re looking for doesn’t exist (or moved).</p>
+    <p><a class="btn" href={url('/')}>Back to the start</a></p>
+  </div>
+</Base>
+
+<style>
+  .page {
+    padding-top: 4rem;
+  }
+  h1 {
+    margin: 0.3rem 0 0.75rem;
+  }
+</style>

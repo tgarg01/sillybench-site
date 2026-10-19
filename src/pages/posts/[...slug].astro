@@ -1,0 +1,102 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PostHero from '../../components/PostHero.astro';
+import SeriesNav from '../../components/SeriesNav.astro';
+import NewsletterForm from '../../components/NewsletterForm.astro';
+import Comments from '../../components/Comments.astro';
+import { SITE } from '../../site.config';
+import { formatDate, mediaUrl, url } from '../../lib/url';
+import { SERIES, TOTAL_PARTS } from '../../data/series';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', (p) => import.meta.env.DEV || !p.data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post, all: posts } }));
+}
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+  all: CollectionEntry<'posts'>[];
+}
+const { post, all } = Astro.props;
+const d = post.data;
+const { Content } = await render(post);
+const og = mediaUrl(d.media.dir, d.media.og);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.date.toISOString(),
+  dateModified: (d.updated ?? d.date).toISOString(),
+  author: { '@type': 'Person', name: SITE.author, url: new URL(url('/about/'), Astro.site).href },
+  image: new URL(og, Astro.site).href,
+  isPartOf: { '@type': 'CreativeWorkSeries', name: SERIES.title },
+};
+---
+
+<Base title={d.title} description={d.description} image={og} type="article" published={d.date}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article class="post">
+    <header class="wrap-narrow post-head">
+      <p class="meta">
+        <a class="chip green" href={url(`/series/${SERIES.id}/`)}>Part {d.part} of {TOTAL_PARTS}</a>
+        <span class="muted">{SERIES.title}</span>
+      </p>
+      <h1>{d.title}</h1>
+      <p class="muted byline">
+        {SITE.author} · <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        {d.updated && <> · updated <time datetime={d.updated.toISOString()}>{formatDate(d.updated)}</time></>}
+      </p>
+    </header>
+
+    <div class="wrap-narrow hero-wrap">
+      <PostHero media={d.media} title={d.title} />
+    </div>
+
+    <div class="wrap-narrow prose" data-pagefind-body>
+      <Content />
+    </div>
+
+    <div class="wrap-narrow">
+      {
+        d.linkedin && (
+          <p class="discuss">
+            <a class="btn ghost" href={d.linkedin}>Discuss this post on LinkedIn</a>
+          </p>
+        )
+      }
+      <SeriesNav current={post} all={all} />
+      <NewsletterForm />
+      <Comments />
+    </div>
+  </article>
+</Base>
+
+<style>
+  .post-head {
+    padding-top: 2.5rem;
+    padding-bottom: 1.5rem;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    margin-bottom: 0.9rem;
+    font-size: 0.9rem;
+  }
+  .meta a.chip {
+    text-decoration: none;
+  }
+  .byline {
+    margin: 0.9rem 0 0;
+    font-size: 0.92rem;
+  }
+  .hero-wrap {
+    margin-bottom: 2.25rem;
+  }
+  .discuss {
+    margin: 2rem 0 0;
+  }
+</style>

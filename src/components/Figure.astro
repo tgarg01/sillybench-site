@@ -1,0 +1,43 @@
+---
+// A figure from a Sillybench run (or anywhere). Used in MDX:
+// <Figure post={frontmatter} file="figures/C4_roofline_napkin.png" alt="..." source="https://github.com/...">Caption</Figure>
+import { mediaUrl } from '../lib/url';
+
+interface Props {
+  post: { media: { dir: string } };
+  file: string;
+  alt: string;
+  source?: string;
+  sourceLabel?: string;
+  width?: number;
+  height?: number;
+}
+const { post, file, alt, source, sourceLabel = 'source', width, height } = Astro.props;
+---
+
+<figure class="fig">
+  <a href={mediaUrl(post.media.dir, file)} target="_blank" rel="noopener">
+    <img src={mediaUrl(post.media.dir, file)} alt={alt} loading="lazy" decoding="async" width={width} height={height} />
+  </a>
+  <figcaption>
+    <slot />
+    {source && <> <a href={source}>{sourceLabel}</a></>}
+  </figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 1.75rem 0 2rem;
+  }
+  img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--rule);
+    background: #fff;
+  }
+  figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+</style>

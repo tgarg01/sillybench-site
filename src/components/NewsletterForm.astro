@@ -1,0 +1,60 @@
+---
+import { SITE } from '../site.config';
+import { url } from '../lib/url';
+
+interface Props {
+  compact?: boolean;
+}
+const user = SITE.newsletter.buttondownUser;
+---
+
+<section class:list={['nl card', { compact: Astro.props.compact }]} aria-labelledby="nl-h">
+  <h2 id="nl-h">Get the next part</h2>
+  <p class="muted">One email when a new part is out, plus one figure that doesn’t fit on LinkedIn. No spam.</p>
+  {
+    user ? (
+      <form action={`https://buttondown.com/api/emails/embed-subscribe/${user}`} method="post" target="_blank" class="f">
+        <label class="sr-only" for="nl-email">Email address</label>
+        <input id="nl-email" type="email" name="email" required placeholder="you@example.com" autocomplete="email" />
+        <button class="btn" type="submit">Subscribe</button>
+      </form>
+    ) : (
+      <div class="f alt">
+        {SITE.links.linkedin && <a class="btn" href={SITE.links.linkedin}>Follow on LinkedIn</a>}
+        <a class={SITE.links.linkedin ? 'btn ghost' : 'btn'} href={url('/rss.xml')}>Subscribe via RSS</a>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .nl {
+    padding: 1.4rem 1.25rem;
+    margin: 2.5rem 0;
+    background: var(--green-soft);
+    border-color: transparent;
+    box-shadow: none;
+  }
+  h2 {
+    margin-bottom: 0.3rem;
+  }
+  .f {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  input {
+    flex: 1 1 14rem;
+    min-height: 44px;
+    padding: 0 0.85rem;
+    font: inherit;
+    border-radius: 10px;
+    border: 1.5px solid var(--rule);
+    background: var(--paper-2);
+    color: var(--ink);
+  }
+  p {
+    margin: 0;
+  }
+</style>

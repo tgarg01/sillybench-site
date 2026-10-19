@@ -1,0 +1,34 @@
+---
+interface Props {
+  tone?: 'note' | 'open-question';
+  title?: string;
+}
+const { tone = 'note', title } = Astro.props;
+---
+
+<aside class:list={['callout', tone]}>
+  {title && <p class="t">{title}</p>}
+  <slot />
+</aside>
+
+<style>
+  .callout {
+    margin: 1.5rem 0;
+    padding: 1rem 1.15rem;
+    border-radius: 12px;
+    background: var(--green-soft);
+    font-size: 0.97rem;
+  }
+  .callout.open-question {
+    background: var(--blue-soft);
+  }
+  .t {
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin: 0 0 0.25rem;
+  }
+  .callout :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

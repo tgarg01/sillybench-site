@@ -1,0 +1,31 @@
+# Weekly check that every link on the built site still resolves (Sillybench paths, datasheets, figures).
+# A failure opens nothing by itself; it shows up as a red run in the Actions tab.
+name: Link check
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          BASE_PATH: /   # so root-relative links resolve inside dist/
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress --root-dir "${{ github.workspace }}/dist"
+            --exclude '^https://www\.linkedin\.com' --exclude 'goatcounter' --exclude 'buttondown\.com/api'
+            --max-concurrency 8 --accept 200,206,429
+            './dist/**/*.html'
+          fail: true

@@ -1,0 +1,42 @@
+---
+// "Sources & methodology": the post's Sources footer, verbatim. Wrap a markdown list in MDX:
+// <Sources>
+// - ...
+// </Sources>
+---
+
+<section class="sources" aria-labelledby="sources-h">
+  <h2 id="sources-h">Sources &amp; methodology</h2>
+  <p class="muted lead">Where every number in this post comes from: my own runs, the model’s config, or NVIDIA’s datasheet.</p>
+  <div class="list"><slot /></div>
+</section>
+
+<style>
+  .sources {
+    margin: 3rem 0 0;
+    padding-top: 2rem;
+    border-top: 1px dashed var(--rule);
+  }
+  h2 {
+    margin-bottom: 0.4rem;
+  }
+  .lead {
+    font-size: 0.95rem;
+  }
+  .list {
+    font-size: 0.93rem;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .list :global(ul) {
+    padding-left: 1.2rem;
+    margin: 0;
+  }
+  .list :global(li) {
+    margin: 0 0 0.7rem;
+  }
+  .list :global(li::marker) {
+    content: '•  ';
+    color: var(--muted);
+  }
+</style>

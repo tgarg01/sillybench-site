@@ -1,0 +1,113 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { postUrl, url } from '../lib/url';
+import { PLAN, SERIES, TOTAL_PARTS } from '../data/series';
+
+interface Props {
+  current: CollectionEntry<'posts'>;
+  all: CollectionEntry<'posts'>[];
+}
+const { current, all } = Astro.props;
+const sorted = all.filter((p) => p.data.series === current.data.series).sort((a, b) => a.data.part - b.data.part);
+const i = sorted.findIndex((p) => p.id === current.id);
+const prev = sorted[i - 1];
+const next = sorted[i + 1];
+const publishedParts = new Set(sorted.map((p) => p.data.part));
+const upcoming = !next ? PLAN.find((p) => p.part === current.data.part + 1) : undefined;
+---
+
+<nav class="series-nav" aria-label="Series navigation">
+  <p class="kicker">
+    <a href={url(`/series/${SERIES.id}/`)}>{SERIES.title}</a> · Part {current.data.part} of {TOTAL_PARTS}
+  </p>
+  <div class="progress" role="img" aria-label={`${sorted.length} of ${TOTAL_PARTS} parts published`}>
+    {Array.from({ length: TOTAL_PARTS }, (_, k) => <span class:list={{ done: publishedParts.has(k + 1), here: k + 1 === current.data.part }} />)}
+  </div>
+  <div class="pn">
+    {prev ? (
+      <a class="card link" href={postUrl(prev.id)} rel="prev">
+        <span class="muted small">← Part {prev.data.part}</span>
+        <span class="t">{prev.data.title}</span>
+      </a>
+    ) : <span />}
+    {next ? (
+      <a class="card link right" href={postUrl(next.id)} rel="next">
+        <span class="muted small">Part {next.data.part} →</span>
+        <span class="t">{next.data.title}</span>
+      </a>
+    ) : upcoming ? (
+      <div class="card link right soon">
+        <span class="muted small">Coming next · Part {upcoming.part}</span>
+        <span class="t">{upcoming.title}</span>
+      </div>
+    ) : <span />}
+  </div>
+</nav>
+
+<style>
+  .series-nav {
+    margin: 3rem 0 2rem;
+  }
+  .kicker a {
+    color: inherit;
+  }
+  .progress {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6px, 1fr));
+    gap: 4px;
+    margin: 0.5rem 0 1rem;
+  }
+  .progress span {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--rule);
+  }
+  .progress span.done {
+    background: var(--green);
+  }
+  .progress span.here {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .pn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  a.link:hover {
+    border-color: var(--green);
+  }
+  .right {
+    text-align: right;
+  }
+  .soon {
+    border-style: dashed;
+    box-shadow: none;
+    background: transparent;
+  }
+  .t {
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.2;
+  }
+  .small {
+    font-size: 0.82rem;
+  }
+  @media (max-width: 560px) {
+    .pn {
+      grid-template-columns: 1fr;
+    }
+    .right {
+      text-align: left;
+    }
+  }
+</style>

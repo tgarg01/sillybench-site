@@ -1,0 +1,53 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.040
+You type a prompt on your laptop and hit send.
+
+2
+00:00:03.040 --> 00:00:09.250
+We skip the network trip to the server. Every number from here on is measured on the GPU server.
+
+3
+00:00:09.250 --> 00:00:15.180
+On the server's CPU, a tokenizer splits the prompt into 512 tokens.
+
+4
+00:00:15.180 --> 00:00:21.320
+Each token ID picks a row of 5,120 numbers from the embedding table.
+
+5
+00:00:21.320 --> 00:00:26.890
+Stacked together, that's a 512 × 5,120 matrix.
+
+6
+00:00:26.890 --> 00:00:31.360
+In the prompt phase, the whole matrix enters layer 1 at once.
+
+7
+00:00:31.360 --> 00:00:39.890
+Layer 1 is a chain of small GPU programs called kernels. The CPU sends them, and the GPU runs them in order.
+
+8
+00:00:39.890 --> 00:00:47.680
+The Q, K, V matrix multiply saves the keys and values of all 512 tokens in the KV cache.
+
+9
+00:00:47.680 --> 00:00:53.870
+Matrix multiplies (GEMMs) take 92.6% of the GPU's time.
+
+10
+00:00:53.870 --> 00:00:59.530
+Each layer's output becomes the next layer's input, through all 64 layers.
+
+11
+00:00:59.530 --> 00:01:06.210
+Then the output head picks the first token. The whole prompt phase took 54.3 ms.
+
+12
+00:01:06.210 --> 00:01:14.740
+Now decode begins. The KV cache already holds those 512 tokens, so only the new token goes back in.
+
+13
+00:01:14.740 --> 00:01:25.240
+That's 902 kernels and 20.55 ms per token, about 48.7 tokens a second, for every token that follows.

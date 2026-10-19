@@ -1,0 +1,104 @@
+---
+title: "Same 64 layers. Same kernels. Two completely different jobs for the GPU."
+description: "Prefill vs decode on an H100, measured: 512 prompt tokens in 54 ms at 46% of peak compute, then 20.6 ms per token at 74% of peak memory bandwidth. Why one is compute-bound and the other memory-bound."
+series: "llm-inference-gpu"
+part: 2
+date: 2026-10-19
+tags: ["LLMInference","GPU","CUDA","vLLM","NVIDIA"]
+media:
+  dir: "post-02"
+  stills:
+    - {"src":"stills/step01.webp","full":"stills/step01-2160.webp"}
+    - {"src":"stills/step02.webp","full":"stills/step02-2160.webp"}
+    - {"src":"stills/step03.webp","full":"stills/step03-2160.webp"}
+    - {"src":"stills/step04.webp","full":"stills/step04-2160.webp"}
+    - {"src":"stills/step05.webp","full":"stills/step05-2160.webp"}
+    - {"src":"stills/step06.webp","full":"stills/step06-2160.webp"}
+    - {"src":"stills/step07.webp","full":"stills/step07-2160.webp"}
+  loop:
+    mp4: "loop.mp4"
+    poster: "stills/step01.webp"
+    width: 720
+    height: 720
+    seconds: 26.4
+  carousel: "carousel.pdf"
+  og: "og.png"
+  card: "stills/step05.webp"
+measuredOn:
+  gpu: "1x NVIDIA H100 SXM 80GB (GCP a3-highgpu-1g)"
+  model: "Qwen3.8-27B, BF16"
+  engine: "vLLM 0.31, default settings"
+  workload: "Batch 1, 512-token prompt"
+  run: "2026-10-09_qwen3.8-27b_bf16_initial"
+repro:
+  repo: "https://github.com/tgarg01/Sillybench"
+  ref: "main"
+  path: "posts/post-02"
+  notebook: "posts/post-02/post-02.ipynb"
+  colab: false
+# linkedin: https://www.linkedin.com/feed/update/...   (adds a "Discuss on LinkedIn" button)
+---
+import StepGallery from '../../../components/StepGallery.astro';
+import MeasuredOn from '../../../components/MeasuredOn.astro';
+import Reproduce from '../../../components/Reproduce.astro';
+import Sources from '../../../components/Sources.astro';
+import Figure from '../../../components/Figure.astro';
+import Callout from '../../../components/Callout.astro';
+
+In Post 1, a prompt went through two phases: prefill (the prompt phase), then decode (one token at a time).
+
+Here is what each one looks like on the H100, measured at batch 1:
+
+Prefill: 512 prompt tokens in 54 ms
+
+- 0.1 ms per token
+- \~460 TFLOP/s: 46% of the H100's 989 TFLOP/s
+- memory: 0.94 TB/s, 28% of the 3.35 TB/s
+- compute-bound
+
+Decode: 1 new token in 20.6 ms
+
+- 20.6 ms per token, \~190x more than prefill
+- 2.5 TFLOP/s: 0.25% of peak
+- memory: 2.49 TB/s, 74% of peak
+- memory-bound
+
+Why? Every token has to "see" all the weights: 51.2 GB of them (25.6B parameters in BF16).
+
+- Prefill reads those 51.2 GB once and uses them for all 512 tokens
+- Decode reads all 51.2 GB again for every single token
+
+The number that decides it: FLOPs done per byte read from memory.
+
+- H100's balance point: 989 TFLOP/s ÷ 3.35 TB/s = \~295 FLOPs per byte
+- Prefill: \~490 FLOPs per byte, above it, so the Tensor Cores are the limit
+- Decode: \~1 FLOP per byte, far below it, so memory is the limit
+
+So the answer to Post 1's question: no, one decode token doesn't come close to using those 989 TFLOP/s.
+
+Even at the full 3.35 TB/s, a decode step can't go faster than 15.3 ms. The GPU mostly waits for weights to arrive.
+
+**Next post:** what if 32 users decode at the same time? The weights get read once for all of them.
+
+<StepGallery post={frontmatter} />
+
+## Go deeper
+
+The roofline above places the whole decode step. Here is the same plot for each decode GEMM separately, at batch 1 and batch 32. Times are measured with Nsight Systems; bytes and FLOPs are computed from the weight shapes.
+
+<Figure post={frontmatter} file="figures/C4_roofline_napkin.png" alt="Log-log roofline of the H100 with every decode GEMM plotted. Batch-1 GEMMs cluster at about 1 FLOP per byte on the memory slope; batch-32 GEMMs sit about 32 times further right and higher; one GEMM, gdn.in_proj_ba, sits well below the slope at both batch sizes." source="https://github.com/tgarg01/Sillybench/blob/main/runs/2026-10-09_qwen3.8-27b_bf16_initial/analysis/C4_roofline_napkin.png" sourceLabel="C4_roofline_napkin.png on GitHub">At batch 1 (blue) every GEMM sits at about 1 FLOP per byte, right on the memory slope. At batch 32 (orange) the same weights serve 32 tokens, so each GEMM moves about 32x to the right and up, and is still left of the 295 balance point. That is the next part’s topic. The outlier, <code>gdn.in_proj_ba</code>, sits well below the slope at both batch sizes: it is too small to keep the GPU busy, a story for a later part.</Figure>
+
+<MeasuredOn post={frontmatter} />
+
+<Reproduce post={frontmatter} />
+
+<Sources>
+
+- Measured with `vllm bench latency` (vLLM 0.31, default settings), Qwen3.8-27B BF16, batch 1, 512 input tokens, 5 iterations each, on 1x H100 SXM 80GB (GCP a3-highgpu-1g). Sillybench run [`2026-10-09_qwen3.8-27b_bf16_initial`](https://github.com/tgarg01/Sillybench/tree/main/runs/2026-10-09_qwen3.8-27b_bf16_initial), bench/lat_b1_in512_out1.json (prefill = 54.33 ms avg) and lat_b1_in512_out128.json (2,664 ms). Decode per token = (2,664 - 54.3) / 127 = 20.55 ms. Reproduced within 0.1% on a fresh VM (2026-10-13 run).
+- Prefill time is end-to-end (includes \~9 ms of host/scheduling time); GPU-only prefill from Nsight Systems is 45.0 ms, which would make prefill 56% of peak.
+- Weights read per forward: 25.62B GEMM parameters x 2 bytes = 51.24 GB, from config.json (all layer GEMMs + LM head; the input embedding is a lookup, not streamed).
+- FLOPs: decode = 2 x 25.62B = 51.2 GFLOP per token. Prefill = 512 x 2 x (25.62B - 1.27B LM head) + LM head once (vLLM computes logits only for the last prompt token) = 24.9 TFLOP. Attention FLOPs at 512 tokens are &lt;0.3% and ignored.
+- H100 SXM peaks: 989 TFLOP/s dense BF16, 3.35 TB/s HBM3 (NVIDIA datasheet). Ridge = 989 / 3.35 = 295 FLOP/byte.
+- Decode floor: 51.24 GB / 3.35 TB/s = 15.3 ms per token.
+
+</Sources>

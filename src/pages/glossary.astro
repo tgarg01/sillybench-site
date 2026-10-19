@@ -1,0 +1,84 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { GLOSSARY } from '../data/glossary';
+import { postUrl } from '../lib/url';
+
+const posts = await getCollection('posts', (p) => !p.data.draft);
+const byPart = new Map(posts.map((p) => [p.data.part, p]));
+const terms = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term));
+---
+
+<Base title="Glossary" description="The GPU and LLM-inference terms used across the series, each with the series' own measured number.">
+  <header class="wrap-narrow head">
+    <p class="kicker">Reference</p>
+    <h1>Glossary</h1>
+    <p class="lede">The terms the series uses, in plain words, with this series’ own numbers where it has one.</p>
+    <nav class="jump" aria-label="Jump to term">
+      {terms.map((t) => <a href={`#${t.id}`}>{t.term.split(' (')[0]}</a>)}
+    </nav>
+  </header>
+  <dl class="wrap-narrow terms">
+    {
+      terms.map((t) => {
+        const p = t.part ? byPart.get(t.part) : undefined;
+        return (
+          <div id={t.id} class="term">
+            <dt>{t.term}</dt>
+            <dd>
+              {t.def}
+              {p && (
+                <>
+                  {' '}
+                  <a class="intro" href={postUrl(p.id)}>Introduced in part {p.data.part}</a>
+                </>
+              )}
+            </dd>
+          </div>
+        );
+      })
+    }
+  </dl>
+</Base>
+
+<style>
+  .head {
+    padding-top: 3rem;
+    padding-bottom: 1rem;
+  }
+  .lede {
+    color: var(--ink-2);
+    margin-top: 0.75rem;
+  }
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.9rem;
+    font-size: 0.9rem;
+  }
+  .terms {
+    margin-top: 1.5rem;
+  }
+  .term {
+    padding: 1rem 0;
+    border-top: 1px dashed var(--rule);
+    scroll-margin-top: 5rem;
+  }
+  .term:target dt {
+    color: var(--green);
+  }
+  dt {
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.2;
+  }
+  dd {
+    margin: 0.3rem 0 0;
+    color: var(--ink-2);
+  }
+  .intro {
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,187 @@
+---
+// Top-of-post media: the silent looping animation, plus the narrated version (with captions) when there is one.
+import { mediaUrl, formatDuration } from '../lib/url';
+
+interface Props {
+  media: {
+    dir: string;
+    loop: { mp4: string; poster: string; width: number; height: number; seconds: number };
+    narrated?: { mp4: string; vtt?: string; poster: string; seconds: number };
+  };
+  title: string;
+}
+const { media, title } = Astro.props;
+const m = (f: string) => mediaUrl(media.dir, f);
+---
+
+<figure class="hero" data-hero>
+  {
+    media.narrated && (
+      <div class="tabs" role="tablist" aria-label="Video version">
+        <button role="tab" aria-selected="true" data-tab="loop" id="tab-loop" aria-controls="panel-loop">
+          Animation <span class="mono">{formatDuration(media.loop.seconds)}</span>
+        </button>
+        <button role="tab" aria-selected="false" data-tab="narrated" id="tab-narrated" aria-controls="panel-narrated" tabindex="-1">
+          Narrated <span class="mono">{formatDuration(media.narrated.seconds)}</span>
+        </button>
+      </div>
+    )
+  }
+  <div class="frame card">
+    <div id="panel-loop" role="tabpanel" aria-labelledby="tab-loop" data-panel="loop">
+      <video
+        data-loop
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster={m(media.loop.poster)}
+        width={media.loop.width}
+        height={media.loop.height}
+        aria-label={`Animation: ${title}`}
+      >
+        <source src={m(media.loop.mp4)} type="video/mp4" />
+      </video>
+      <button class="playpause" type="button" data-playpause aria-label="Pause animation">
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path></svg>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"></path></svg>
+      </button>
+    </div>
+    {
+      media.narrated && (
+        <div id="panel-narrated" role="tabpanel" aria-labelledby="tab-narrated" data-panel="narrated" hidden>
+          <video data-narrated controls playsinline preload="none" poster={m(media.narrated.poster)} width="1080" height="1080">
+            <source src={m(media.narrated.mp4)} type="video/mp4" />
+            {media.narrated.vtt && <track kind="captions" src={m(media.narrated.vtt)} srclang="en" label="English" default />}
+          </video>
+        </div>
+      )
+    }
+  </div>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-hero]').forEach((hero) => {
+    const loop = hero.querySelector<HTMLVideoElement>('[data-loop]');
+    const narrated = hero.querySelector<HTMLVideoElement>('[data-narrated]');
+    const pp = hero.querySelector<HTMLButtonElement>('[data-playpause]');
+    const setPP = () => {
+      if (!loop || !pp) return;
+      pp.dataset.state = loop.paused ? 'paused' : 'playing';
+      pp.setAttribute('aria-label', loop.paused ? 'Play animation' : 'Pause animation');
+    };
+    if (loop) {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        loop.removeAttribute('autoplay');
+        loop.pause();
+      }
+      loop.addEventListener('play', setPP);
+      loop.addEventListener('pause', setPP);
+      setPP();
+      pp?.addEventListener('click', () => (loop.paused ? loop.play() : loop.pause()));
+    }
+    const tabs = hero.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+    const show = (name: string) => {
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === name;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+      });
+      hero.querySelectorAll<HTMLElement>('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== name));
+      if (name === 'narrated') {
+        loop?.pause();
+      } else {
+        narrated?.pause();
+      }
+    };
+    tabs.forEach((t) => {
+      t.addEventListener('click', () => show(t.dataset.tab!));
+      t.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        const list = [...tabs];
+        const next = list[(list.indexOf(t) + (e.key === 'ArrowRight' ? 1 : list.length - 1)) % list.length];
+        next.focus();
+        show(next.dataset.tab!);
+      });
+    });
+  });
+</script>
+
+<style>
+  .hero {
+    margin: 0 auto;
+    max-width: 40rem;
+  }
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.6rem;
+  }
+  .tabs button {
+    font: 600 0.9rem var(--font-body);
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    min-height: 40px;
+  }
+  .tabs button .mono {
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 0.25rem;
+    font-size: 0.8rem;
+  }
+  .tabs button[aria-selected='true'] {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .tabs button[aria-selected='true'] .mono {
+    color: inherit;
+    opacity: 0.7;
+  }
+  .frame {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+  }
+  .frame video {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #f7f3ec;
+  }
+  .playpause {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(31, 31, 31, 0.72);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.85;
+  }
+  .playpause:hover {
+    opacity: 1;
+  }
+  .playpause svg {
+    width: 20px;
+    height: 20px;
+  }
+  .playpause .i-play {
+    display: none;
+  }
+  .playpause[data-state='paused'] .i-play {
+    display: block;
+  }
+  .playpause[data-state='paused'] .i-pause {
+    display: none;
+  }
+</style>

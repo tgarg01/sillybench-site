@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="Search" description="Search every post.">
+  <div class="wrap-narrow page">
+    <h1>Search</h1>
+    <div id="search" data-bundle={url('/pagefind/')}></div>
+    <noscript><p>Search needs JavaScript.</p></noscript>
+    <p class="muted hint" id="search-hint" hidden>The search index is built with <code>npm run build</code>, so it isn’t available in <code>npm run dev</code>.</p>
+  </div>
+  <link slot="head" rel="stylesheet" href={url('/pagefind/pagefind-ui.css')} />
+</Base>
+
+<script>
+  const el = document.getElementById('search')!;
+  const bundle = el.dataset.bundle!;
+  const s = document.createElement('script');
+  s.src = `${bundle}pagefind-ui.js`;
+  s.onload = () => {
+    // @ts-expect-error PagefindUI is a global from the script above
+    new PagefindUI({ element: '#search', showSubResults: true, showImages: false, bundlePath: bundle });
+    const input = el.querySelector('input');
+    input?.focus();
+  };
+  s.onerror = () => (document.getElementById('search-hint')!.hidden = false);
+  document.head.append(s);
+</script>
+
+<style>
+  .page {
+    padding-top: 3rem;
+  }
+  h1 {
+    margin-bottom: 1.25rem;
+  }
+  #search {
+    --pagefind-ui-primary: var(--green);
+    --pagefind-ui-text: var(--ink);
+    --pagefind-ui-background: var(--paper-2);
+    --pagefind-ui-border: var(--rule);
+    --pagefind-ui-tag: var(--code-bg);
+    --pagefind-ui-font: var(--font-body);
+    --pagefind-ui-border-radius: 10px;
+  }
+</style>

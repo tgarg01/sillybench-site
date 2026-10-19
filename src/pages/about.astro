@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import NewsletterForm from '../components/NewsletterForm.astro';
+import { SITE } from '../site.config';
+import { url } from '../lib/url';
+---
+
+<Base title="About" description={`Who writes ${SITE.name}, and how the measurements are made.`}>
+  <article class="wrap-narrow prose page">
+    <p class="kicker">About</p>
+    <h1>Hi, I’m {SITE.author}.</h1>
+
+    <!-- Edit this paragraph: your role, what you work on, what you're looking for. -->
+    <p class="lede">
+      I write {SITE.name} to understand, and explain, what really happens on a GPU when an LLM answers a prompt. I’d
+      rather measure it than guess.
+    </p>
+
+    <h2>How the posts are made</h2>
+    <ol>
+      <li><strong>Predict</strong> the result from first principles: bytes moved, FLOPs, the hardware’s datasheet peaks.</li>
+      <li><strong>Measure</strong> it on real hardware: <code>vllm bench latency</code>, Nsight Systems, Nsight Compute.</li>
+      <li><strong>Explain</strong> every millisecond, and say so when something is still an open question.</li>
+      <li><strong>Publish</strong> the run: config, environment, raw data, analysis and checksums, in <a href={SITE.labsRepo}>Sillybench</a>.</li>
+    </ol>
+    <p>
+      The animations are generated from code with the same numbers, so they can be re-rendered when a measurement changes. See{' '}
+      <a href={url('/runs/')}>the runs</a> for the exact setup behind each number.
+    </p>
+
+    <h2>Get in touch</h2>
+    <p class="links">
+      {SITE.links.linkedin && <a class="btn" href={SITE.links.linkedin}>LinkedIn</a>}
+      <a class={SITE.links.linkedin ? 'btn ghost' : 'btn'} href={SITE.links.github}>GitHub</a>
+      {SITE.links.cv && <a class="btn ghost" href={SITE.links.cv.startsWith('/') ? url(SITE.links.cv) : SITE.links.cv}>CV (PDF)</a>}
+      {SITE.links.email && <a class="btn ghost" href={`mailto:${SITE.links.email}`}>Email</a>}
+    </p>
+    <p class="muted">Spotted a wrong number, or know the answer to one of the open questions? Tell me; corrections get credited in the post.</p>
+  </article>
+  <div class="wrap-narrow">
+    <NewsletterForm />
+  </div>
+</Base>
+
+<style>
+  .page {
+    padding-top: 3rem;
+  }
+  .page h1 {
+    margin: 0.3rem 0 1rem;
+  }
+  .lede {
+    font-size: 1.15rem;
+    color: var(--ink-2);
+  }
+  .page ol {
+    margin-top: 0.5rem;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+</style>

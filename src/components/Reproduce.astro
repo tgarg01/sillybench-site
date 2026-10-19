@@ -1,0 +1,112 @@
+---
+// "Reproduce it" box. Used in MDX as <Reproduce post={frontmatter} />.
+import { repoUrl, colabUrl } from '../lib/url';
+
+interface Props {
+  post: {
+    repro?: { repo: string; ref: string; path?: string; notebook?: string; colab?: boolean; note?: string };
+  };
+}
+const r = Astro.props.post.repro;
+const repoName = r ? r.repo.split('/').pop() : '';
+const lines = r
+  ? [
+      `git clone ${r.repo}.git`,
+      `cd ${repoName}${r.ref !== 'main' ? ` && git checkout ${r.ref}` : ''}`,
+      ...(r.notebook ? ['bash posts/setup_posts.sh', `.venv-posts/bin/jupyter lab ${r.notebook}`] : []),
+    ]
+  : [];
+---
+
+{
+  r && (
+    <section class="repro card" aria-labelledby="repro-h">
+      <h2 id="repro-h">Reproduce it</h2>
+      {r.notebook ? (
+        <p>
+          The notebook prints this post’s numbers. <strong>No GPU?</strong> It reads the stored H100 results
+          (mode: stored) and runs on any laptop. With an NVIDIA GPU and vLLM it measures them on yours.
+        </p>
+      ) : (
+        <p>{r.note ?? 'This post’s numbers come straight from the run files linked below; every table and figure is in the repo.'}</p>
+      )}
+      <div class="actions">
+        {r.notebook && r.colab && (
+          <a class="btn" href={colabUrl(r.repo, r.ref, r.notebook)}>
+            Open in Colab
+          </a>
+        )}
+        <a class={r.notebook && r.colab ? 'btn ghost' : 'btn'} href={repoUrl(r.repo, r.ref, r.path)}>
+          View on GitHub
+        </a>
+      </div>
+      {r.notebook && (
+        <div class="code">
+          <div class="code-head">
+            <span class="kicker">Mac / Linux</span>
+            <button type="button" class="copy" data-copy>Copy</button>
+          </div>
+          <pre><code>{lines.join('\n')}</code></pre>
+          <p class="muted small">Windows: see the setup notes in the repo’s <code>posts/README.md</code>. Then Run All.</p>
+        </div>
+      )}
+    </section>
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const code = b.closest('.code')?.querySelector('code')?.textContent ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+        b.textContent = 'Copied';
+      } catch {
+        b.textContent = 'Select and copy';
+      }
+      setTimeout(() => (b.textContent = 'Copy'), 1800);
+    }),
+  );
+</script>
+
+<style>
+  .repro {
+    margin: 1.25rem 0 2.5rem;
+    padding: 1.4rem 1.25rem 1.25rem;
+  }
+  h2 {
+    margin-bottom: 0.6rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+  .code {
+    margin-top: 1rem;
+  }
+  .code-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.35rem;
+  }
+  .copy {
+    font: 600 0.8rem var(--font-body);
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--ink-2);
+    border-radius: 8px;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    min-height: 32px;
+  }
+  pre {
+    margin: 0 0 0.6rem;
+  }
+  .small {
+    font-size: 0.85rem;
+    margin: 0;
+  }
+</style>
