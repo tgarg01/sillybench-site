@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 import PostCard from '../components/PostCard.astro';
 import { url, mediaUrl, postUrl } from '../lib/url';
 import { SITE } from '../site.config';
-import { SERIES, upcoming } from '../data/series';
+import { SERIES, upcoming, getSeries, releaseDay } from '../data/series';
 import NextEpisode from '../components/NextEpisode.astro';
 
 const all = await getCollection('posts', (p) => !p.data.draft);
@@ -16,6 +16,8 @@ const shelves = [...SERIES]
     return { s, eps, soon: upcoming(s, eps.map((p) => p.data.episode)) };
   })
   .filter((x) => x.eps.length);
+const latestSeries = latest ? getSeries(latest.data.series) : undefined;
+const nextUp = shelves.find((x) => x.s.id === latest?.data.series)?.soon;
 ---
 
 <Base>
@@ -27,6 +29,23 @@ const shelves = [...SERIES]
         {shelves[0] && <a class="btn" href={url(`/series/${shelves[0].s.id}/`)}>Start Series {shelves[0].s.number}</a>}
         {latest && <a class="btn ghost" href={postUrl(latest.id)}>Latest: Episode {latest.data.episode}</a>}
       </div>
+      {
+        latest && latestSeries && (
+          <div class="now">
+            <a class="now-item" href={postUrl(latest.id)}>
+              <span class="kicker">Out now · Series {latestSeries.number}, Episode {latest.data.episode}</span>
+              <span class="now-title hand">{latest.data.title}</span>
+              <span class="now-desc">{latest.data.description}</span>
+            </a>
+            {nextUp && (
+              <p class="now-next">
+                <span class="kicker">Next · {releaseDay(nextUp.date)}</span>
+                <span class="hand">Episode {nextUp.episode}: {nextUp.title}</span>
+              </p>
+            )}
+          </div>
+        )
+      }
     </div>
     {
       latest && (
@@ -118,6 +137,46 @@ const shelves = [...SERIES]
     flex-wrap: wrap;
     gap: 0.6rem;
   }
+  .now {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--rule);
+    display: grid;
+    gap: 1rem;
+    max-width: 34rem;
+  }
+  .now-item {
+    display: grid;
+    gap: 0.3rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .now-item:hover .now-title {
+    color: var(--green);
+  }
+  .now-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .now-desc {
+    font-size: 0.95rem;
+    color: var(--ink-2);
+  }
+  .now-next {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px dashed var(--rule);
+    border-radius: 10px;
+  }
+  .now-next .hand {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
   .hero-media {
     display: block;
     overflow: hidden;
@@ -178,7 +237,47 @@ const shelves = [...SERIES]
       gap: 2rem;
       padding-top: 2.5rem;
     }
-    .hero-media {
+    .now {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--rule);
+    display: grid;
+    gap: 1rem;
+    max-width: 34rem;
+  }
+  .now-item {
+    display: grid;
+    gap: 0.3rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .now-item:hover .now-title {
+    color: var(--green);
+  }
+  .now-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .now-desc {
+    font-size: 0.95rem;
+    color: var(--ink-2);
+  }
+  .now-next {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px dashed var(--rule);
+    border-radius: 10px;
+  }
+  .now-next .hand {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .hero-media {
       max-width: 28rem;
       transform: none;
     }

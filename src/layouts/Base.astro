@@ -6,6 +6,7 @@ import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
 import { SITE } from '../site.config';
 import { url } from '../lib/url';
+import { SERIES } from '../data/series';
 
 interface Props {
   title?: string;
@@ -122,7 +123,7 @@ const nav = [
         <ul class="foot-links">
           <li><a href={url('/rss.xml')}>RSS</a></li>
           {SITE.links.linkedin && <li><a href={SITE.links.linkedin}>LinkedIn</a></li>}
-          <li><a href={SITE.links.github}>GitHub</a></li>
+          {SERIES.map((s) => <li><a href={s.repo}>{s.repo.split('/').pop()}</a></li>)}
         </ul>
         <p class="muted small">© {new Date().getFullYear()} {SITE.author}</p>
       </div>

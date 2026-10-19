@@ -10,7 +10,6 @@ export const SITE = {
   lang: 'en',
 
   links: {
-    github: 'https://github.com/tgarg01',
     linkedin: 'https://www.linkedin.com/in/tushargarg22/',
     youtube: '',
     x: '',

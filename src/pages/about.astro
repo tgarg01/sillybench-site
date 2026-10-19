@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { SITE } from '../site.config';
 import { url } from '../lib/url';
+import { SERIES } from '../data/series';
 
 const timeline = [
   {
@@ -36,13 +37,7 @@ const timeline = [
     when: '2020 – 2022',
     what: 'M.Tech, Computer Science & Engineering',
     where: 'IIT Hyderabad',
-    points: ['Specialization in smart mobility. GPA 9.0/10. Led the student AI research team at TiHAN, IIT Hyderabad’s autonomous-navigation hub.'],
-  },
-  {
-    when: '2014 – 2018',
-    what: 'B.Tech, Computer Science',
-    where: 'Dr. A.P.J. Abdul Kalam Technical University',
-    points: [],
+    points: ['Specialization in smart mobility. GPA 9.0/10.'],
   },
 ];
 
@@ -60,6 +55,8 @@ const skills = [
   'Pre-silicon GPU modeling',
   'NVIDIA Hopper',
   'Intel Xe GPUs',
+  'Jupyter notebooks',
+  'Google Cloud (GCP)',
   'Python',
   'PyTorch',
   'Triton',
@@ -92,7 +89,7 @@ const skills = [
 
     <div class="links">
       {SITE.links.linkedin && <a class="btn" href={SITE.links.linkedin}>Connect on LinkedIn</a>}
-      <a class={SITE.links.linkedin ? 'btn ghost' : 'btn'} href={SITE.links.github}>GitHub</a>
+      <a class={SITE.links.linkedin ? 'btn ghost' : 'btn'} href={SERIES[0].repo}>Sillybench on GitHub</a>
       {SITE.links.cv && <a class="btn ghost" href={SITE.links.cv.startsWith('/') ? url(SITE.links.cv) : SITE.links.cv}>CV (PDF)</a>}
       {SITE.links.email && <a class="btn ghost" href={`mailto:${SITE.links.email}`}>Email</a>}
     </div>
@@ -127,7 +124,7 @@ const skills = [
     <h2>Say hello</h2>
     <p>
       Spotted a wrong number, or know the answer to one of the open questions in an episode? Tell me on
-      {' '}<a href={SITE.links.linkedin || SITE.links.github}>{SITE.links.linkedin ? 'LinkedIn' : 'GitHub'}</a>.
+      {' '}<a href={SITE.links.linkedin || SERIES[0].repo}>{SITE.links.linkedin ? 'LinkedIn' : 'GitHub'}</a>.
       Corrections get credited in the episode.
     </p>
   </article>
