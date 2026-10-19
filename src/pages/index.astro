@@ -24,11 +24,6 @@ const shelves = [...SERIES]
     <div class="intro">
       <p class="kicker">{SITE.name}</p>
       <h1>LLM inference, <span class="hl">measured</span> on real GPUs.</h1>
-      <p class="lede">
-        I take a real model, a real inference engine and a real GPU, and explain what the hardware is actually doing, one
-        idea per episode. Every number is my own measurement, every claim names its source, and every episode comes with a
-        Jupyter notebook that reproduces it.
-      </p>
       <div class="cta">
         {shelves[0] && <a class="btn" href={url(`/series/${shelves[0].s.id}/`)}>Start Series {shelves[0].s.number}</a>}
         {latest && <a class="btn ghost" href={postUrl(latest.id)}>Latest: Episode {latest.data.episode}</a>}
@@ -59,7 +54,7 @@ const shelves = [...SERIES]
     <div class="pillar">
       <span class="n hand">1</span>
       <h2 class="h3">Measured</h2>
-      <p>Real models on real inference engines, profiled on real GPUs with tools like Nsight Systems and Nsight Compute. No borrowed benchmarks.</p>
+      <p>Real models on real inference engines and real GPUs, analyzed with Nsight Systems and Nsight Compute. No borrowed benchmarks.</p>
     </div>
     <div class="pillar">
       <span class="n hand">2</span>
@@ -69,7 +64,7 @@ const shelves = [...SERIES]
     <div class="pillar">
       <span class="n hand">3</span>
       <h2 class="h3">Reproducible</h2>
-      <p>Every episode links a Jupyter notebook that prints its numbers on any laptop or in Colab, or re-measures them on your GPU.</p>
+      <p>Every episode links a Jupyter notebook that helps you understand the concept and reproduce it.</p>
     </div>
   </section>
 
@@ -121,13 +116,8 @@ const shelves = [...SERIES]
     color: var(--green);
     background: linear-gradient(transparent 62%, var(--green-soft) 62%);
   }
-  .lede {
-    font-size: 1.15rem;
-    color: var(--ink-2);
-    margin: 1.25rem 0 1.75rem;
-    max-width: 36rem;
-  }
   .cta {
+    margin-top: 1.75rem;
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
