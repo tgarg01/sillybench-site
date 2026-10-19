@@ -6,7 +6,7 @@
 // Reads   post-NN.md (hook, "Post N of ..." line, body, "Sources (not part of the post)" footer, hashtags),
 //         post-NN.gif, stills/*.png, post-NN_carousel.pdf (and post-NN.mp4 + .srt with --narrated)
 //         + the episode's notebook from the series repo (src/data/series.json) at the tag post-NN (else main):
-//           <repo>/posts/post-NN/*.ipynb, run once in stored mode so the page shows its outputs
+//           <repo>/notebooks/postN.ipynb, run once on the stored run so the page shows its outputs
 // Writes  public/media/post-NN/  loop.mp4, stills/*.webp, carousel.pdf, og.png, notebook.ipynb
 //         src/content/posts/NN-slug/index.mdx  new: written in full
 //                                              existing: only the importer's frontmatter (episode, media, repro)
@@ -19,7 +19,7 @@
 //   --ref <git ref>     repo tag/branch/SHA to link and to take the notebook from (default: tag post-NN if it exists)
 //   --local <dir>       preview: take the notebook from a local checkout (uncommitted files too) instead of GitHub;
 //                       links still point at --ref, so don't publish until it's pushed and tagged
-//   --python <path>     Python with jupyter to run the notebook (default: <Posts>/Sillybench/.venv-posts/bin/python)
+//   --python <path>     Python with jupyter to run the notebook (default: the checkout's .venv, see LOCAL_CHECKOUT)
 //   --no-execute        show the notebook as committed (no outputs) instead of running it
 //   --figure <file>     copy a figure into public/media/post-NN/figures/ (repeatable), for a "Go deeper" section
 //   --poster <n>        which still the video shows before it plays (default 1)
@@ -38,6 +38,8 @@ import yamlLib from 'js-yaml';
 import { makeOg } from './lib/og.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// Your local clone of the series repo; its .venv runs the notebooks. Override with --python.
+const LOCAL_CHECKOUT = path.join(os.homedir(), 'Profiling', 'Sillybench');
 const SERIES_LIST = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'data', 'series.json'), 'utf8'));
 
 // Defaults for "Measured on"; edit the frontmatter afterwards if a post differs.
@@ -152,26 +154,24 @@ if (opts.local) {
   const cl = spawnSync('git', ['clone', '--quiet', '--depth', '1', '--branch', ref, `${SERIES.repo}.git`, clone], { encoding: 'utf8' });
   if (cl.status !== 0) die(`could not clone ${SERIES.repo} at ${ref}: ${cl.stderr}`);
 }
-const nbDirRel = `posts/${name}`;
-const nbFile = fs.existsSync(path.join(clone, nbDirRel))
-  ? fs.readdirSync(path.join(clone, nbDirRel)).find((f) => f.endsWith('.ipynb'))
-  : undefined;
+const nbDirRel = 'notebooks';
+const nbFile = fs.existsSync(path.join(clone, nbDirRel, `post${episode}.ipynb`)) ? `post${episode}.ipynb` : undefined;
 let repro = { repo: SERIES.repo, ref };
 let notebookOut;
 if (nbFile) {
   const nbRel = `${nbDirRel}/${nbFile}`;
   const nbSrc = fs.readFileSync(path.join(clone, nbRel), 'utf8');
   repro = { ...repro, path: nbDirRel, notebook: nbRel, colab: nbSrc.includes('google.colab') };
-  notebookOut = path.join(clone, nbDirRel, 'executed.ipynb');
+  notebookOut = path.join(clone, nbDirRel, `post${episode}.executed.ipynb`);
   let executed = false;
   if (!opts.noExecute) {
-    const py = opts.python ?? path.join(srcDir, '..', 'Sillybench', '.venv-posts', 'bin', 'python');
+    const py = opts.python ?? path.join(opts.local ?? LOCAL_CHECKOUT, '.venv', 'bin', 'python');
     if (fs.existsSync(py)) {
       log(`running ${nbRel} (stored mode) ...`);
       const r = spawnSync(
         py,
         ['-m', 'jupyter', 'nbconvert', '--to', 'notebook', '--execute', '--ExecutePreprocessor.kernel_name=python3',
-          '--ExecutePreprocessor.timeout=600', '--output', 'executed.ipynb', nbFile],
+          '--ExecutePreprocessor.timeout=600', '--output', path.basename(notebookOut), nbFile],
         { cwd: path.join(clone, nbDirRel), encoding: 'utf8', env: { ...process.env, PATH: `${path.dirname(py)}:${process.env.PATH}` } },
       );
       executed = r.status === 0;
@@ -195,7 +195,7 @@ if (nbFile) {
   repro.note = runId
     ? 'The notebook for this episode is on its way. Until then, every number traces to the run’s analysis files listed in the sources below.'
     : 'The notebook for this episode is on its way.';
-  log(`no notebook in ${nbDirRel} at ${ref}`);
+  log(`no ${nbDirRel}/post${episode}.ipynb at ${ref}`);
 }
 
 // ---------- media ----------

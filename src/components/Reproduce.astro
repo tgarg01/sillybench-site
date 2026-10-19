@@ -35,8 +35,8 @@ const commands = r?.notebook
   ? [
       `git clone --depth 1 --branch ${r.ref} ${r.repo}.git`,
       `cd ${repoName}`,
-      'bash posts/setup_posts.sh',
-      `.venv-posts/bin/jupyter lab ${r.notebook}`,
+      'bash setup_mac.sh',
+      `.venv/bin/jupyter lab ${r.notebook}`,
     ].join('\n')
   : '';
 ---
@@ -111,7 +111,7 @@ const commands = r?.notebook
             </div>
             <pre><code>{commands}</code></pre>
             <p class="muted small">
-              Windows: see <code>posts/README.md</code> in the repo. Then Run All.
+              Windows: see <code>notebooks/README.md</code> in the repo. Then Run All.
             </p>
           </div>
         </details>
