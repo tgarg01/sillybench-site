@@ -23,7 +23,7 @@ export const SITE = {
 
   // Where post media (videos, stills, PDFs) is served from. Defaults to /media inside this site.
   // Move it to Cloudflare R2 later by uploading public/media/ and setting PUBLIC_MEDIA_BASE at build time.
-  mediaBase: import.meta.env.PUBLIC_MEDIA_BASE ?? '',
+  mediaBase: import.meta.env.PUBLIC_MEDIA_BASE || '',
 
   // Buttondown username; '' hides the signup form and shows RSS + LinkedIn instead.
   newsletter: { buttondownUser: '' },
