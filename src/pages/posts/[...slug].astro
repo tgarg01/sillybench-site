@@ -3,7 +3,6 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PostHero from '../../components/PostHero.astro';
 import SeriesNav from '../../components/SeriesNav.astro';
-import NewsletterForm from '../../components/NewsletterForm.astro';
 import Comments from '../../components/Comments.astro';
 import { SITE } from '../../site.config';
 import { formatDate, mediaUrl, url } from '../../lib/url';
@@ -68,7 +67,6 @@ const jsonLd = {
         )
       }
       <SeriesNav current={post} all={all} />
-      <NewsletterForm />
       <Comments />
     </div>
   </article>

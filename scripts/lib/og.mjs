@@ -84,11 +84,12 @@ export async function makeOg({ title, kicker, footer, image, out }) {
   const lh = size * 1.12;
   const blockH = lines.length * lh;
   const firstBaseline = titleTop + (titleBottom - titleTop - blockH) / 2 + size * 0.95;
+  const footerLines = wrap(KALAM, footer, 26, textW);
   const textSvg = Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
       ${pathsFor(KALAM_BOLD, [kicker], 28, pad, pad + 28, 0, GREEN)}
       ${pathsFor(KALAM_BOLD, lines, size, pad, firstBaseline, lh, INK)}
-      ${pathsFor(KALAM, wrap(KALAM, footer, 26, textW), 26, pad, H - pad, 30, GREY)}
+      ${pathsFor(KALAM, footerLines, 26, pad, H - pad - (footerLines.length - 1) * 30, 30, GREY)}
     </svg>`,
   );
 

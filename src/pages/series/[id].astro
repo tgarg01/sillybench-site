@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import NewsletterForm from '../../components/NewsletterForm.astro';
 import { SERIES, upcoming, type Series } from '../../data/series';
 import NextEpisode from '../../components/NextEpisode.astro';
 import { mediaUrl, postUrl, formatDate } from '../../lib/url';
@@ -54,7 +53,6 @@ const soon = upcoming(series, episodes.map((p) => p.data.episode));
   <div class="wrap-narrow">
     {soon && <NextEpisode next={soon} />}
     <p class="muted note">New episodes are added as the measurements come in.</p>
-    <NewsletterForm />
   </div>
 </Base>
 

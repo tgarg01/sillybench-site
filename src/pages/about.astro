@@ -1,6 +1,5 @@
 ---
 import Base from '../layouts/Base.astro';
-import NewsletterForm from '../components/NewsletterForm.astro';
 import { SITE } from '../site.config';
 import { url } from '../lib/url';
 
@@ -37,7 +36,7 @@ const timeline = [
     when: '2020 – 2022',
     what: 'M.Tech, Computer Science & Engineering',
     where: 'IIT Hyderabad',
-    points: ['GPA 9.0/10. Led the student AI research team at TiHAN, IIT Hyderabad’s autonomous-navigation hub.'],
+    points: ['Specialization in smart mobility. GPA 9.0/10. Led the student AI research team at TiHAN, IIT Hyderabad’s autonomous-navigation hub.'],
   },
   {
     when: '2014 – 2018',
@@ -75,18 +74,20 @@ const skills = [
     <p class="kicker">About</p>
     <h1>Hi, I’m {SITE.author}.</h1>
     <p class="lede">
-      I’m a GPU performance architect. I spent four years at Intel predicting how AI workloads would run on GPUs that
-      didn’t exist yet. Now I measure how LLMs actually run on the ones that do.
+      I spent four years at Intel predicting how AI workloads would run on GPUs that didn’t exist yet. Now I measure
+      how LLMs actually run on the ones that do.
     </p>
     <p>
       My work sits where models meet hardware: why a kernel is slow, which limit it hits (compute, memory bandwidth,
       latency, occupancy), and what would change if the hardware or the software changed. I studied Computer Science at{' '}
-      <strong>IIT Hyderabad</strong> (M.Tech), then joined <strong>Intel</strong>, where I built analytical performance
-      models for pre-silicon Xe GPUs and helped architects decide things like cache sizes and matrix-engine shapes.
+      <strong>IIT Hyderabad</strong> (M.Tech, specializing in smart mobility), then joined <strong>Intel</strong>, where
+      I built analytical performance models for pre-silicon Xe GPUs, ran bottleneck studies on AI workloads, and helped
+      architects decide things like cache sizes and matrix-engine shapes.
     </p>
     <p>
-      {SITE.name} is where I explain what I find. Every episode predicts a result from first principles, measures it on
-      real hardware, explains every millisecond, and ships a notebook so you can check my numbers.
+      Through {SITE.name} and my experience in the industry, I like to learn and teach the concepts in this field. Every
+      episode predicts a result from first principles, measures it on real hardware, explains every millisecond, and
+      ships a notebook so you can reproduce it yourself and get real hands-on experience of the field.
     </p>
 
     <div class="links">
@@ -130,9 +131,6 @@ const skills = [
       Corrections get credited in the episode.
     </p>
   </article>
-  <div class="wrap-narrow">
-    <NewsletterForm />
-  </div>
 </Base>
 
 <style>

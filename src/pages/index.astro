@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import PostCard from '../components/PostCard.astro';
-import NewsletterForm from '../components/NewsletterForm.astro';
 import { url, mediaUrl, postUrl } from '../lib/url';
 import { SITE } from '../site.config';
 import { SERIES, upcoming } from '../data/series';
@@ -90,9 +89,6 @@ const shelves = [...SERIES]
     ))
   }
 
-  <div class="wrap-narrow">
-    <NewsletterForm />
-  </div>
 </Base>
 
 <script>
