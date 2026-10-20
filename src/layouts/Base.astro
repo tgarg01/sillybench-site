@@ -121,7 +121,7 @@ const nav = [
         <ul class="foot-links">
           <li><a href={url('/rss.xml')}>RSS</a></li>
           {SITE.links.linkedin && <li><a href={SITE.links.linkedin}>LinkedIn</a></li>}
-          {SERIES.map((s) => <li><a href={s.repo}>{s.repo.split('/').pop()}</a></li>)}
+          {SERIES.map((s) => <li><a href={s.repo}>GitHub</a></li>)}
         </ul>
         <p class="muted small">© {new Date().getFullYear()} {SITE.author}</p>
       </div>

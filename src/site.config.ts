@@ -2,7 +2,7 @@
 // Empty strings switch a feature off (the page then hides it).
 
 export const SITE = {
-  name: 'AI on Silicon',
+  name: 'SillyBench',
   tagline: 'Understand LLM inference by visualizing it on real hardware.',
   description:
     'LLM inference through the lens of a GPU: every number measured on real hardware, every claim sourced, every result reproducible from a public repo.',

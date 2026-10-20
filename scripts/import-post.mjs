@@ -301,7 +301,7 @@ if (existingForOg) {
 await makeOg({
   title: ogTitle,
   kicker: `SERIES ${SERIES.number} · EPISODE ${episode}`,
-  footer: `AI on Silicon · ${SERIES.title}`,
+  footer: `SillyBench · ${SERIES.title}`,
   image: pngs.length ? path.join(stillsSrc, pngs[cardIdx]) : path.join(mediaDir, 'loop-poster.webp'),
   out: path.join(mediaDir, 'og.png'),
 });

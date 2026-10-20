@@ -1,4 +1,4 @@
-# AI on Silicon
+# SillyBench (website)
 
 The website for my GPU-inference series. **Series 1: LLM inference through the lens of a GPU.** Each LinkedIn post
 becomes an *episode* page with everything LinkedIn can't hold:
