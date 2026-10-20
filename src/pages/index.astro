@@ -24,7 +24,7 @@ const nextUp = shelves.find((x) => x.s.id === latest?.data.series)?.soon;
   <section class="wrap hero">
     <div class="intro">
       <p class="kicker">{SITE.name}</p>
-      <h1>LLM inference, <span class="hl">measured</span> on real GPUs.</h1>
+      <h1 class="headline">Understand LLM inference by <span class="hl">visualizing</span> it on real hardware, with actual measured numbers and reproducible experiments.</h1>
       <div class="cta">
         {shelves[0] && <a class="btn" href={url(`/series/${shelves[0].s.id}/`)}>Start Series {shelves[0].s.number}</a>}
         {latest && <a class="btn ghost" href={postUrl(latest.id)}>Latest: Episode {latest.data.episode}</a>}
@@ -126,6 +126,10 @@ const nextUp = shelves.find((x) => x.s.id === latest?.data.series)?.soon;
     align-items: center;
     padding-top: 4rem;
     padding-bottom: 3rem;
+  }
+  .headline {
+    font-size: clamp(1.9rem, 1.3rem + 2vw, 2.7rem);
+    line-height: 1.18;
   }
   .hl {
     color: var(--green);

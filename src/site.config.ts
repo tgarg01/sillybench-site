@@ -3,7 +3,7 @@
 
 export const SITE = {
   name: 'AI on Silicon',
-  tagline: 'LLM inference, measured on real GPUs.',
+  tagline: 'Understand LLM inference by visualizing it on real hardware.',
   description:
     'LLM inference through the lens of a GPU: every number measured on real hardware, every claim sourced, every result reproducible from a public repo.',
   author: 'Tushar Garg',

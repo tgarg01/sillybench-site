@@ -49,7 +49,6 @@ public/media/post-NN/                 its media (written by the importer)
 src/components/                       PostHero (Animation / Step by step tabs), MeasuredOn, Reproduce, Sources, Figure, ...
 src/data/series.json                  each series: number, title, blurb, its notebook repo
 src/lib/notebook.ts                   renders a .ipynb to static HTML for the Reproduce section
-src/data/glossary.ts                  /glossary terms
 src/site.config.ts                    name, links, comments, analytics: fill these in
 scripts/import-post.mjs               ~/Posts/post-NN → site post
 scripts/og-default.mjs                site-wide social card
