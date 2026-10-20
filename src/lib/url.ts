@@ -2,7 +2,7 @@ import { SITE } from '../site.config';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-/** Internal link that respects the deploy base path ('/AIonSilicon' on GitHub Pages, '' on a custom domain). */
+/** Internal link that respects the deploy base path ('/sillybench-site' on GitHub Pages, '' on a custom domain). */
 export function url(path = '/'): string {
   return `${BASE}/${path.replace(/^\//, '')}`;
 }

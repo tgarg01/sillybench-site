@@ -27,7 +27,7 @@ Astro 7 + MDX, deployed to GitHub Pages. No server and no database.
    * writes `public/media/post-03/` (looping MP4 from the GIF, WebP stills, carousel PDF, social card, notebook)
    * writes `src/content/posts/03-batching/index.mdx`
 4. **Edit the MDX:** sharpen the `description`, write the "Go deeper" captions, and add the `linkedin:` URL once the post is live.
-5. `npm run dev` to preview (http://localhost:4321/AIonSilicon/). Commit and push; `main` deploys.
+5. `npm run dev` to preview (http://localhost:4321/sillybench-site/). Commit and push; `main` deploys.
 
 **Re-running the importer** on an existing episode (for example after updating its notebook or tag) only updates the
 frontmatter it owns (`episode`, `media`, `repro`) and keeps your text. `--force` rewrites the whole MDX instead.
@@ -65,7 +65,7 @@ scripts/og-default.mjs                site-wide social card
 ## Hosting
 
 * **GitHub Pages:** create the GitHub repo, push, then Settings → Pages → Source: **GitHub Actions**.
-  The site is served at `https://tgarg01.github.io/AIonSilicon/`.
+  The site is served at `https://tgarg01.github.io/sillybench-site/`.
 * **Custom domain:** buy it (e.g. Cloudflare Registrar), add it under Settings → Pages, then set the repository
   variables `SITE_URL=https://yourdomain.com` and `BASE_PATH=/`.
 * **Media size:** each episode adds about 5–10 MB (most of it the carousel PDF). GitHub Pages allows
