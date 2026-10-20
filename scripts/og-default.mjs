@@ -6,7 +6,7 @@ import { makeOg } from './lib/og.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 await makeOg({
-  title: 'Understand LLM inference by visualizing it on real hardware.',
+  title: 'Understand LLM inference by visualizing it on real hardware with real numbers.',
   kicker: 'SILLYBENCH',
   footer: 'Measured · sourced · reproducible',
   image: process.argv[2] ?? path.join(ROOT, 'public', 'media', 'post-01', 'stills', 'step10-2160.webp'),

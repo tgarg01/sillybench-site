@@ -3,7 +3,7 @@
 
 export const SITE = {
   name: 'SillyBench',
-  tagline: 'Understand LLM inference by visualizing it on real hardware.',
+  tagline: 'Understand LLM inference by visualizing it on real hardware with real numbers.',
   description:
     'LLM inference through the lens of a GPU: every number measured on real hardware, every claim sourced, every result reproducible from a public repo.',
   author: 'Tushar Garg',
